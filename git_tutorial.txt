@@ -85,3 +85,14 @@ githubにリモートのリポジトリを配置できる
 
 ・git push <remote-repository-name> <branch-name>
 git push origin master(originリポジトリにmasterブランチをpushする)
+
+【git reset】
+
+・git reset --soft/--hard <commit id>
+git reflogで確認したコミットに移動できる
+HEADは直前のコミットを指す
+HEAD・・・直前のコミットに移動
+HEAD@{n}・・・n番目のコミットに移動
+3647b9e・・・直接7桁のコミットIDを指定することで移動
+--soft・・・現在のワーキングディレクトリの編集を維持する
+--hard・・・現在のワーキングディレクトリの編集も含めて該当のコミットに完全リセット
