@@ -1,0 +1,87 @@
+★用語解説
+・gitとは？
+バージョン管理システム(VCS)
+どれが最新？どれが1つ前の修正版？どれが5つ前のバージョン？
+hoge_20220101.pdf / hoge_20220103.pdf / hoge_20220205.pdf
+→新しいバージョンを保存するたびに容量が2倍3倍になっていく
+一人ではなんとかなるが、100人単位で数年かけて開発するソフトウェアだとヤバい
+gitは簡単に履歴を辿れて、容量を抑えつつ、改ざんにも強い
+
+・branchとmerge
+gitは単に時系列順にバージョンを管理するだけでなく、
+別々の時間軸のバージョンを管理できる
+
+別々の時間軸のことをbranchという
+branchはRPGの新しいセーブデータみたいな感じ
+
+そして元のバージョンに別のbranchのバージョンを統合することをmergeという
+
+・git init
+ディレクトリをgitの制御下に置く
+
+・git add
+コミット前の儀式
+ステージング領域に入る（インデックス領域？）
+
+・git commit -m "first commit"
+コミット
+
+・git status
+ステージングの状態などを見る
+どのファイルでコンフリクトしているかも見れる
+
+・git restore --staged {file_name}
+ステージングを取り消す
+
+・git log
+コミット日時、コミットID、コミット製作者、コミットメッセージ
+色々表示する
+
+・git log --oneline
+詳しくは使ってみて確認
+
+・git reflog
+git logより色んなこと表示してくれる
+
+・git branch
+現在作られているbranch一覧を見たり、新しいbranchを作ったりできる
+デフォルトでmasterブランチが作られる
+git branch {branch_name}で新しいブランチを作る
+
+・git checkout {switched_branch_name}
+ブランチを切り替えたり削除できる
+
+・git checkout -d {something_name}
+よくわかんない
+新しいブランチが作られてるけど、ブランチ切り替えると消える
+
+・git merge {develop}
+セーブデータの統合
+masterブランチに移動してから行う
+gitではmergeするbranchのことを'theirs'、mergeされるbranchのことを'ours'と呼ぶ
+mergeするとdevelopで開発した差分を自動的にmasterに取り込んでくれる
+しかし、masterとdevelopで同じ箇所を違うように変更していた場合、コンフリクトを起こす
+コンフリクトが起きたら、手動でコンフリクトを解消する必要がある
+
+・git merge-base {branch1} {branch2}
+どのコミットからそれぞれのbranchが分岐したか調べられる
+
+・git diff
+色々と差分を見るのに使う
+git diff {merge_base_id} {branch} {conflict_file_name}
+それぞれのブランチで、merge-baseしたコミット（分岐前）からどんな修正が加えられたか分かる
+VSCodeでどっちのブランチを残すか選べる
+
+【git remote】
+
+・git remote
+登録済みのリポジトリを表示する
+
+・git remote rm origin
+登録先のリポジトリoriginを削除する
+
+・git remote add <repository-name> <repository-url>
+githubにリモートのリポジトリを配置できる
+
+・git push <remote-repository-name> <branch-name>
+git push origin master(originリポジトリにmasterブランチをpushする)
