@@ -13,3 +13,4 @@ if __name__ == '__main__':
   unittest.main()
 
 # ↓コマンドラインで実行するとテストできる
+# pytest
