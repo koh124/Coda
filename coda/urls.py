@@ -5,4 +5,5 @@ from . import views
 urlpatterns = [
   path('', views.index, name='index'), # nameは名前つきルート?
   path('test', views.test, name='test'),
+  path('dtl', views.djangoTemplateLanguage, name='dtl')
 ]

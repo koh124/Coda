@@ -15,12 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from coda.views import test # 直接importしてルーティングを定義することもできる
+from coda.views import test, djangoTemplateLanguage # 直接importしてルーティングを定義することもできる
 
 # ルーティングを定義する
 urlpatterns = [
     path('', include('coda.urls')),
     path('test', test), # ルーティング関数を直接指定
     path('test', include('coda.urls')),
+    path('dtl', djangoTemplateLanguage),
     path('admin/', admin.site.urls),
 ]
