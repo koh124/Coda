@@ -1,18 +1,23 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
-import debugpy
-port = 5678
-debugpy.listen(port)
-debugpy.wait_for_client()
+# import debugpy
+# port = 5678
+# debugpy.listen(port)
+# debugpy.wait_for_client()
 
 # ここでviewを作成できる
 # Create your views here.
 def index(request):
-  code = request.POST
+
+  # パラメータ受け取り
   print(request.POST) # postパラメータ受け取り
   print(request.GET) # getパラメータ受け取り
-  # return HttpResponse(f'hello world {code["code"]}')
+
+  # 継承したテンプレートを返す
+  return render(request, 'child.html')
+
+  # 文字列だけページに表示する
   return HttpResponse('Hello world!!')
 
 # settings.pyで必要なこと
