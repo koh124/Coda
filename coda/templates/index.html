@@ -10,5 +10,18 @@
 </head>
 <body>
   Djangoです！！！
+
+  postパラメータ送信テスト
+  <form action="/" method="POST">
+    <input type="text" value="this is post value" name="data">
+    <input type="submit">
+    {% csrf_token %}
+  </form>
+
+  <form action="/" method="POST">
+    <textarea name="code" cols="30" rows="10"></textarea>
+    <input type="submit">
+    {% csrf_token %}
+  </form>
 </body>
 </html>

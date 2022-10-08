@@ -4,7 +4,11 @@ from django.http import HttpResponse
 # ここでviewを作成できる
 # Create your views here.
 def index(request):
-  return HttpResponse('hello world')
+  code = request.POST
+  print(request.POST) # postパラメータ受け取り
+  print(request.GET) # getパラメータ受け取り
+  # return HttpResponse(f'hello world {code["code"]}')
+  return HttpResponse('Hello world!!')
 
 # settings.pyで必要なこと
 # INSTALLED_APPSにcoda（アプリケーション名）を追加する
