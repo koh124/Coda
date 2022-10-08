@@ -1,6 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
+import debugpy
+port = 5678
+debugpy.listen(port)
+debugpy.wait_for_client()
+
 # ここでviewを作成できる
 # Create your views here.
 def index(request):
