@@ -1,12 +1,12 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models.code.code import Code
+from .models.models import Code
 from .models.docker.docker import Docker
 
-import debugpy
-port = 5678
-debugpy.listen(port)
-debugpy.wait_for_client()
+# import debugpy
+# port = 5678
+# debugpy.listen(port)
+# debugpy.wait_for_client()
 
 # ここでviewを作成できる
 # Create your views here.
@@ -18,8 +18,7 @@ def index(request):
   code = Code(lang=post[0], code=post[1])
   code.writeFile()
 
-  docker = Docker(code)
-  output = docker.run()
+  output = Docker(code).run()
 
   # パラメータ受け取り
   print(request.POST) # postパラメータ受け取り

@@ -8,6 +8,3 @@ class CodeInterface(ABC):
 
   @abstractmethod
   def exec(self): pass # コードを実行する（dockerを呼ぶ）
-
-  @abstractmethod
-  def getStdOut(self): pass # コンテナの標準出力を得る

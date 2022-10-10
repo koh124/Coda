@@ -1,4 +1,4 @@
-from coda.models.code.codeinterface import CodeInterface
+# from coda.models.code.codeinterface import CodeInterface
 from coda.models.docker.dockerinterface import DockerInterface
 import os
 import subprocess
@@ -15,13 +15,13 @@ class Docker(DockerInterface):
   WORKING_DIR = '/usr/src/myapp'
   code = ''
 
-  def __init__(self, code:CodeInterface) -> None: # オブジェクト生成時にcodeを受け取る
+  def __init__(self, code) -> None: # オブジェクト生成時にcodeを受け取る
     self.code = code
 
   def run(self):
     # cmd =  f"docker run -it --rm --name {self.name} -v ~/desktop/coda_project/coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.lang} {self.lang} ./codes/user1/{self.FILE_NAME}"
     # cmd =  f"docker run -it --name {self.name} -v ~/desktop/coda_project/coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.lang} {self.lang} ./codes/user1/{self.FILE_NAME}"
-    cmd =  f"docker run -it --rm --name {self.name} -v ~/desktop/coda_project/coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.code.lang} {self.code.lang} ./codes/user1/{self.code.file_name}"
+    cmd =  f"docker run -it --rm --name {self.name} -v ~/desktop/coda_project/coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.code.language} {self.code.language} ./codes/user1/{self.code.file_name}"
     print(cmd)
 
     ret = subprocess.run(
