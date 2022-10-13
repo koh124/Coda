@@ -20,8 +20,8 @@ class Docker(DockerInterface):
 
   def run(self):
     # cmd =  f"docker run -it --rm --name {self.name} -v ~/desktop/coda_project/coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.lang} {self.lang} ./codes/user1/{self.FILE_NAME}"
-    # cmd =  f"docker run -it --name {self.name} -v ~/desktop/coda_project/coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.lang} {self.lang} ./codes/user1/{self.FILE_NAME}"
     cmd =  f"docker run -it --rm --name {self.name} -v ~/desktop/coda_project/coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.code.language} {self.code.language} ./codes/user1/{self.code.file_name}"
+    cmd =  f"docker run -it --name {self.name} -v ~/desktop/coda_project/coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.code.language} {self.code.language} ./codes/user1/{self.code.file_name}"
     print(cmd)
 
     ret = subprocess.run(
