@@ -25,22 +25,81 @@ from django.db import models
 # auto_now_add オブジェクトが最初に作成されたときに自動的に現在の日付を保存する
 
 # リレーション
-# User -> has many -> Article -> has many -> Code
-# Code → has one → Language
-# Language → has many → Article
-# Language → has many → Code
+# User.id -> has many -> Article.user_id ユーザーは複数の記事を持つ
+# User.id -> has many -> Code.user_id ユーザーは複数のコードを持つ
+# Article.id -> has many -> Code.article_id 記事は複数のコードを持つ
+# Language.id -> has many -> Article.language_id, Code.language_id 言語は複数の記事とコードを持つ
+
+# user
+# id, name, account_id, password, created_at, updated_at
+
+# article
+# id, title, body, user, created_at, updated_at
+
+# article_module_dependencyテーブル
+# ※一つのarticleに対し、3つのモジュールまで
+# ※記事は書いたユーザーのものだが、モジュールは作成した人のもの
+# id, article_id, module_id, created_at, updated_at
+# 1, 1, 1 \
+# 2, 1, 2  | これは絶対に同じユーザーのモジュールにならなくてはいけない→そんなことはない
+# 3, 1, 3 /
+
+# moduleテーブル（複数のファイルをパッケージ化したもの）
+# id, name, public, importable, executable, created_at, updated_at, user
+
+# fileテーブル（ファイル命名規則: 作成日時_userid_fileid.lang）
+# ※publicはファイルを他ユーザーに公開するかを規定
+# ※importableは他ユーザーのファイルimportを許可するかを規定
+# ※executableは実行可能環境がないけど共有したいコードかどうかを規定（bashコードとか送られても実行できない）
+# id, language, file_name, module, code, file_path, public, importable, executable, created_at, updated_at, user, article
+
+# file_dependency中間テーブル（多ファイル対多ファイルを表現）
+# dependency_pair_id, file_id, dependency_file_id, created_at, updated_at
+# dependency_pair_id, file_id, dependency_file_id...
+
+# language
+# id, name
+# 1 python
+# 2 php
+# 3 css
+# 4 html
+# 5 js
+# 6 scss
+# 7 bash
+
+# デザイン
+# ＋モジュール
+# ＋モジュール
+# ＋モジュール
+# 記事タイトル
+# 記事本文
+
+# ＋モジュール（開）
+# |エディタ
+# |
+# |
+# ...
+# |
+# stdout stdin（タブ別）
 
 # クラスはテーブルの定義
 class User(models.Model):
   name = models.CharField(max_length=32)
-
-class Language(models.Model):
-  name = models.CharField(max_length=50)
+  # account_id =
+  # password =
+  # user
+# id, name, account_id, password, created_at, updated_at
 
 class Article(models.Model):
   title = models.CharField(max_length=50) # 記事タイトル
   body = models.TextField() # 記事本文
-  language = models.ForeignKey(Language, on_delete=models.CASCADE)
+  user = models.ForeignKey(User, on_delete=models.CASCADE)
+  # article
+# id, title, body, user, created_at, updated_at
+
+class Language(models.Model):
+  name = models.CharField(max_length=50)
+
 
 class Code(models.Model):
   module_name = models.CharField(max_length=50) # SayHello
