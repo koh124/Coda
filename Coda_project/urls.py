@@ -17,11 +17,18 @@ from django.contrib import admin
 from django.urls import path, include
 from coda.views import test, djangoTemplateLanguage # 直接importしてルーティングを定義することもできる
 
+# import debugpy
+# port = 5678
+# debugpy.listen(port)
+# debugpy.wait_for_client()
+
 # ルーティングを定義する
 urlpatterns = [
     path('', include('coda.urls')),
-    path('test', test), # ルーティング関数を直接指定
-    path('test', include('coda.urls')),
-    path('dtl', djangoTemplateLanguage),
+    # path('coda/', include('coda.urls')), # "coda/url.py"のurlpatternsは、urlが'/coda'から続く形でルーティングされるようになる
+    path('account/', include('account.urls')), # app名 = account のurl.pyを参照する
+    path('test/', test), # ルーティング関数を直接指定
+    path('test/', include('coda.urls')),
+    path('dtl/', djangoTemplateLanguage),
     path('admin/', admin.site.urls),
 ]

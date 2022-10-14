@@ -1,0 +1,10 @@
+{% extends "account/base.html" %}
+
+{% block title %}トップ{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-5">Top画面</h1>
+    <a href="{% url 'account:login' %}" class="btn btn-outline-primary">ログイン</a>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "account/base.html" %}
+
+{% block title %}ログイン{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>ログイン</h1>
+    <form action="" method="POST">
+        {% csrf_token %}
+        {{ form.non_field_errors }} <!-- フォームエラーのときのエラーメッセージ -->
+        {% for field in form %} <!-- formはformタグオブジェクトが持つすべてのHTMLタグ -->
+            {{ field.label }} <!-- inputタグに紐づくlabelタグ -->
+            <br>
+            {{ field }} <!-- fieldはinputタグ -->
+            <br>
+            {{ field.error }} <!-- 条件がよくわからない -->
+        {% endfor %}
+        <br>
+        <button type="submit">ログイン</button>
+    </form>
+</div>
+{% endblock %}

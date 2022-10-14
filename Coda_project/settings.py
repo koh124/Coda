@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'coda'
+    'coda',
+    'account'
 ]
 
 MIDDLEWARE = [
@@ -126,3 +127,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# 'account:login'はurl.pyに記載されているapp_nameの値がaccountのurlpatternsから、
+# name='login'のルートを参照している（名前つきルート）
+# テンプレート側で{% url 'account:login' %}のようにすることで、
+# 名前つきルートへのURLを生成できる
+LOGIN_URL = 'account:login'
+LOGIN_REDIRECT_URL = 'account:home' # ログイン後リダイレクト先
+LOGOUT_REDIRECT_URL = 'account:top' # ログアウト後リダイレクト先

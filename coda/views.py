@@ -1,16 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models.models import Article, Code, Language, User
+# from .models.models import Article, Code, Language, User
 from .models.docker.docker import Docker
 from .models.docker.dockerinterface import DockerInterface
 from .models.languages import LANGUAGES
 from datetime import datetime
 import os
-
-# import debugpy
-# port = 5678
-# debugpy.listen(port)
-# debugpy.wait_for_client()
 
 # ここでviewを作成できる
 # Create your views here.
@@ -19,28 +14,28 @@ def index(request):
   post = ['php', '<?php \necho("hi!! Im come from view!");']
   post = ['python', "import math\nprint(math.sqrt(81))"] # モジュールはインストールしないと使えない
 
-  User(name='koh').save()
-  Language(name='python').save()
-  Article(title='pythonで標準出力する方法', body='pythonで標準出力する方法を紹介します', language=Language(id=1)).save()
+  # User(name='koh').save()
+  # Language(name='python').save()
+  # Article(title='pythonで標準出力する方法', body='pythonで標準出力する方法を紹介します', language=Language(id=1)).save()
 
-  Code(
-    module_name = "SayHello",
-    language = "python",
-    code = 'print("Hello")',
-    file_name = "20221212_something_11.py",
-    file_path = "path/to/file",
-    web_client_lang = False,
-    user = User(id=1),
-    article = Article(id=1),
-    created_at = datetime.now(),
-    updated_at = datetime.now()
-  ).save()
+  # Code(
+  #   module_name = "SayHello",
+  #   language = "python",
+  #   code = 'print("Hello")',
+  #   file_name = "20221212_something_11.py",
+  #   file_path = "path/to/file",
+  #   web_client_lang = False,
+  #   user = User(id=1),
+  #   article = Article(id=1),
+  #   created_at = datetime.now(),
+  #   updated_at = datetime.now()
+  # ).save()
 
-  code = CodeController(lang=post[0], code=post[1])
-  code.writeFile()
+  # code = CodeController(lang=post[0], code=post[1])
+  # code.writeFile()
 
-  output = Docker(code).run()
-  print(output)
+  # output = Docker(code).run()
+  # print(output)
 
   # パラメータ受け取り
   print(request.POST) # postパラメータ受け取り
@@ -73,8 +68,8 @@ example = {
   'code': 'print("hello coda!!")'
 }
 
-# Codeモデルを継承
-class CodeController(Code):
+# Codeモデルを継承 Code
+class CodeController():
   module_name = "SayHello"
   language = "python"
   code = 'print("Hello")'
