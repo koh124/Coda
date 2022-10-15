@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User as AuthUser
 from django.contrib.auth import get_user, get_user_model
 
 # Create your models here.
@@ -81,13 +81,16 @@ from django.contrib.auth import get_user, get_user_model
 # |
 # stdout stdin（タブ別）
 
+class User(models.Model):
+  name = models.CharField(max_length=127)
+
 class Article(models.Model):
   title = models.CharField(max_length=50) # 記事タイトル
   body = models.TextField() # 記事本文
   is_public = models.BooleanField(default=True)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
-  created_at = models.DateField(auto_now_add=True)
-  updated_at = models.DateField(auto_now=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
 
 class Module(models.Model):
   name = models.CharField(max_length=255)
@@ -95,42 +98,53 @@ class Module(models.Model):
   is_importable = models.BooleanField(default=True)
   is_executable = models.BooleanField(default=True)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
-  created_at = models.DateField(auto_now_add=True)
-  updated_at = models.DateField(auto_now=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
 
 class Language(models.Model):
-  name = models.CharField(max_length=50)
-  created_at = models.DateField(auto_now_add=True)
-  updated_at = models.DateField(auto_now=True)
+  name = models.CharField(max_length=255)
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
 
 class File(models.Model):
   language = models.ForeignKey(Language, on_delete=models.CASCADE)
   file_tag_name = models.CharField(max_length=255) # SayHello
-  module = models.ForeignKey(Module, on_delete=models.CASCADE)
   code = models.TextField() # print("Hello")
   file_name = models.CharField(max_length=255)
-  file_path = models.URLField() # path/to/file
+  file_path = models.CharField(max_length=1023) # path/to/file
   is_public = models.BooleanField(default=True)
   is_importable = models.BooleanField(default=True)
   is_executable = models.BooleanField(default=True)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
   article = models.ForeignKey(Article, on_delete=models.CASCADE)
-  created_at = models.DateField(auto_now_add=True)
-  updated_at = models.DateField(auto_now=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
 
-class Article_Module_Dependency(models.Model):
+class Article_Module_Dependencies(models.Model):
   """ArticleとModuleのN対N中間テーブル"""
   article = models.ForeignKey(Article, on_delete=models.CASCADE)
   module = models.ForeignKey(Module, on_delete=models.CASCADE)
-  created_at = models.DateField(auto_now_add=True)
-  updated_at = models.DateField(auto_now=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
 
-class File_Dependency(models.Model):
+class Module_File_Dependencies(models.Model):
+  """
+  ModuleとFileの中間テーブル
+  原則1モジュール対3ファイルだが、
+  別のモジュールとのリレーションがあってもいいはず
+  なのでN対Nになり中間テーブルが必要になる
+  """
+  module = models.ForeignKey(Module, on_delete=models.CASCADE)
+  file = models.ForeignKey(File, on_delete=models.CASCADE)
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
+
+class File_File_Dependencies(models.Model):
   """FileとFileの中間テーブル"""
   file = models.ForeignKey(File, on_delete=models.CASCADE)
   dependency_file = models.ForeignKey(File, on_delete=models.CASCADE)
-  created_at = models.DateField(auto_now_add=True)
-  updated_at = models.DateField(auto_now=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
 
 # ・python3 manage.py makemigrations coda
 # モデルに記述したDBスキーマを元にマイグレーションファイルを作成する
