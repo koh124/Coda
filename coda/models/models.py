@@ -1,5 +1,5 @@
 from django.db import models
-# from django.contrib.auth.models import User as AuthUser
+from django.contrib.auth.models import User
 from django.contrib.auth import get_user, get_user_model
 
 # Create your models here.
@@ -81,9 +81,6 @@ from django.contrib.auth import get_user, get_user_model
 # |
 # stdout stdin（タブ別）
 
-class User(models.Model):
-  name = models.CharField(max_length=127)
-
 class Article(models.Model):
   title = models.CharField(max_length=50) # 記事タイトル
   body = models.TextField() # 記事本文
@@ -141,8 +138,8 @@ class Module_File_Dependencies(models.Model):
 
 class File_File_Dependencies(models.Model):
   """FileとFileの中間テーブル"""
-  file = models.ForeignKey(File, on_delete=models.CASCADE)
-  dependency_file = models.ForeignKey(File, on_delete=models.CASCADE)
+  file = models.ForeignKey(File, on_delete=models.CASCADE, related_name='origin_file')
+  dependency_file = models.ForeignKey(File, on_delete=models.CASCADE, related_name='reference_file')
   created_at = models.DateTimeField(auto_now_add=True)
   updated_at = models.DateTimeField(auto_now=True)
 
