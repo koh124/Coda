@@ -66,20 +66,67 @@ from django.contrib.auth import get_user, get_user_model
 # 6 scss
 # 7 bash
 
-# デザイン
-# ＋モジュール
-# ＋モジュール
-# ＋モジュール
-# 記事タイトル
-# 記事本文
+# ※リレーション再定義
+# 追加の機能
+# ・ユーザーのフォロー/フォロワー
+# ・ユーザーのモジュール別import実績数
+# ・ユーザーのファイル別import実績数
+# ・記事別いいね数
+# ・モジュール別いいね数
+# ・ファイル別いいね数
+# ・他ユーザーにモジュールがimportされると、モジュールとファイルはすべていいね＋1
+# ・他ユーザーにファイルがimportされると、そのファイルはいいね＋1
+# ・モジュール名やモジュールの各種設定が不要でNull able、だがシステム上はファイルとのリレーションはある
 
-# ＋モジュール（開）
-# |エディタ
-# |
-# |
-# ...
-# |
-# stdout stdin（タブ別）
+# 実装
+# User_Follow_Followerテーブル
+# id, follow_user, follower_user
+# 1, Aさん, Bさん
+# 2, Cさん, Aさん
+
+# モジュールのimport記録
+# imported_moduleテーブル
+# id, import_user, imported_module
+# 1, Aさん, Math pack
+# ユーザーのモジュール別import実績数を取得する場合
+# select count(*) from imported_module
+# join imported_module_id on module.id
+# where imported_module.user_id == user.id
+
+# ファイルのimport記録
+# imported_fileテーブル
+# id, import_user, imported_file
+# 1, Aさん, sayHello.py
+
+# ※別のスキーマ案
+# メリット: importする何か（他のユーザーから参照する何か）が増える度に改修に強い
+# content_typeテーブル（これを主キーとして、fileやmoduleは外部キーで従属）
+# id, name
+# 1, file
+# 2, module
+# 3, article
+
+# importテーブル
+# content_type＋content_idの複合キーで決まる
+# id, import_user, content_type, content_id
+# 1, Aさん, 1, 1
+
+# いいね機能
+# favoriteテーブル
+# id, favorite_user, content_type, content_id
+# 1, Aさん, 3, 1
+# リレーション
+# いいね → one to one → article
+# いいね → one to one → module
+# いいね → one to one → file
+# 複合して、
+# いいね → has one → 複合キー(content_type + id)
+
+# moduleテーブル
+# name → null able
+# module.nameが空白だったら、ユーザーはファイルだけを投稿すればいい
+# module.nameが空白のまま編集中/投稿されたファイルは、ユーザーの画面ではファイルだけが見える
+# module.nameを空白のまま記事を投稿することは可能である
 
 class Article(models.Model):
   title = models.CharField(max_length=50) # 記事タイトル
@@ -90,7 +137,7 @@ class Article(models.Model):
   updated_at = models.DateTimeField(auto_now=True)
 
 class Module(models.Model):
-  name = models.CharField(max_length=255)
+  name = models.CharField(max_length=255, blank=True, null=True)
   is_public = models.BooleanField(default=True)
   is_importable = models.BooleanField(default=True)
   is_executable = models.BooleanField(default=True)
@@ -142,6 +189,56 @@ class File_File_Dependencies(models.Model):
   dependency_file = models.ForeignKey(File, on_delete=models.CASCADE, related_name='reference_file')
   created_at = models.DateTimeField(auto_now_add=True)
   updated_at = models.DateTimeField(auto_now=True)
+
+class User_Follow_Follower(models.Model):
+  """フォロー/フォロワーの組を記録する"""
+  follow_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='follow_user')
+  follower_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='follower_user')
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
+
+class Content_Type(models.Model):
+  """file, module, article、コンテンツの種類のidを記録する"""
+  name = models.CharField(max_length=255)
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
+
+class Import_Log(models.Model):
+  """
+  file, moduleのimport履歴を記録する
+  content_type, contentはimport対象を指定する複合キーになっている
+  content_type=articleが不要な入力値になっているのが気になるところ
+  """
+  import_user = models.ForeignKey(User, on_delete=models.CASCADE)
+  content_type = models.PositiveBigIntegerField()
+  content = models.PositiveBigIntegerField()
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
+
+  # 複合ユニーク制約
+  class Meta:
+    constraints = [
+      models.UniqueConstraint(
+        fields=['content_type', 'content'],
+        name='import_log_unique'
+      )
+    ]
+
+class Favorite(models.Model):
+  """file, module, articleのいいねを記録する"""
+  favorite_user = models.ForeignKey(User, on_delete=models.CASCADE)
+  content_type = models.PositiveBigIntegerField()
+  content = models.PositiveBigIntegerField()
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
+
+  class Meta:
+    constraints = [
+      models.UniqueConstraint(
+        fields=['content_type', 'content'],
+        name='favorite_unique'
+      )
+    ]
 
 # ・python3 manage.py makemigrations coda
 # モデルに記述したDBスキーマを元にマイグレーションファイルを作成する
