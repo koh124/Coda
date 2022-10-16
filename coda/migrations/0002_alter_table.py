@@ -41,12 +41,6 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
             ],
-            constraints=[
-                models.UniqueConstraint(
-                    fields=['content_type', 'content'],
-                    name='import_log_unique'
-                )
-            ]
         ),
         migrations.CreateModel(
             name='Favorite',
@@ -58,12 +52,6 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
             ],
-            constraints=[
-                models.UniqueConstraint(
-                    fields=['content_type', 'content'],
-                    name='favorite_unique'
-                )
-            ]
         ),
         migrations.AlterField(
             model_name='Module',
@@ -74,5 +62,13 @@ class Migration(migrations.Migration):
             model_name='Article',
             name='title',
             field=models.CharField(max_length=255)
+        ),
+        migrations.AddConstraint(
+            model_name='import_log',
+            constraint=models.UniqueConstraint(fields=('content_type', 'content'), name='import_log_unique'),
+        ),
+        migrations.AddConstraint(
+            model_name='favorite',
+            constraint=models.UniqueConstraint(fields=('content_type', 'content'), name='favorite_unique'),
         ),
     ]
