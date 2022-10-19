@@ -1,0 +1,24 @@
+body, a, ul, ol, h1, h2, h3, p, input, th, td {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  text-decoration: none;
+  list-style: none;
+  outline: none;
+}
+
+body {
+  /* background: yellow; */
+  font-size: 18px;
+  width: 100%;
+  height: 100%;
+  /* padding: 32px; */
+}
+
+a {
+  color: white;
+}
+
+* {
+  box-sizing: border-box;
+}

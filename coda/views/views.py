@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 # from .models.models import Article, Code, Language, User
-from .models.docker.docker import Docker
-from .models.docker.dockerinterface import DockerInterface
-from .models.languages import LANGUAGES
+from ..models.docker.docker import Docker
+from ..models.docker.dockerinterface import DockerInterface
+from ..models.languages import LANGUAGES
 from datetime import datetime
 import os
 
@@ -17,19 +17,6 @@ def index(request):
   # User(name='koh').save()
   # Language(name='python').save()
   # Article(title='pythonで標準出力する方法', body='pythonで標準出力する方法を紹介します', language=Language(id=1)).save()
-
-  # Code(
-  #   module_name = "SayHello",
-  #   language = "python",
-  #   code = 'print("Hello")',
-  #   file_name = "20221212_something_11.py",
-  #   file_path = "path/to/file",
-  #   web_client_lang = False,
-  #   user = User(id=1),
-  #   article = Article(id=1),
-  #   created_at = datetime.now(),
-  #   updated_at = datetime.now()
-  # ).save()
 
   # code = CodeController(lang=post[0], code=post[1])
   # code.writeFile()
