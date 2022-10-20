@@ -4,5 +4,6 @@ LANGUAGES = {
   'ruby': 'rb',
   'html': 'html',
   'css': 'css',
-  'javascript': 'js'
+  'js': 'js',
+  'javascript': 'js',
 }

@@ -12,8 +12,48 @@
   Djangoです！！！
 
   postパラメータ送信テスト
+  <!-- 要件 -->
+  <!-- ・ -->
+  <!-- ・module1に属するmodule1file1 -->
+  <!-- ・どのmoduleにも属さないfile1 -->
   <form action="/" method="POST">
-    <input type="text" value="this is post value" name="data">
+    <input type="text" value="記事タイトルです" name="article-title">
+    <input type="text" value="本文です" name="article-body">
+    <input type="text" value="true" name="article-is_public">
+
+    <input type="text" value="Math" name="module1">
+    <input type="text" value="div" name="module1-is_public">
+    <input type="text" value="div" name="module1-is_importable">
+    <input type="text" value="div" name="module1-is_executable">
+      <input type="text" value="add" name="module1file">
+      <input type="text" value="add" name="module1file">
+      <input type="text" value="sub" name="module1file">
+      <input type="text" value="div" name="module1file">
+
+    <input type="text" value="greeting" name="module2">
+      <input type="text" value="こんにちは" name="module2file">
+      <input type="text" value="hello" name="module2file">
+      <input type="text" value="ボンジュール" name="module2file">
+      <input type="text" value="div" name="module2is_public">
+      <input type="text" value="div" name="module2is_importable">
+      <input type="text" value="div" name="module2is_executable">
+
+    <input type="text" value="Languages" name="module3">
+    <input type="text" value="js" name="module3file">
+    <input type="text" value="php" name="module3file">
+    <input type="text" value="python" name="module3file">
+    <input type="text" value="div" name="module3is_public">
+    <input type="text" value="div" name="module3is_importable">
+    <input type="text" value="div" name="module3is_executable">
+
+    <input type="text" value="os" name="module4">
+    <input type="text" value="windows" name="module4file">
+    <input type="text" value="mac" name="module4file">
+    <input type="text" value="linux" name="module4file">
+    <input type="text" value="unix" name="module4file">
+    <input type="text" value="div" name="module4is_public">
+    <input type="text" value="div" name="module4is_importable">
+    <input type="text" value="div" name="module4is_executable">
     <input type="submit">
     {% csrf_token %}
   </form>

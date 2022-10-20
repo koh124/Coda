@@ -1,44 +1,47 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-# from .models.models import Article, Code, Language, User
+from numpy import array
+from ..models.models import *
 from ..models.docker.docker import Docker
-from ..models.docker.dockerinterface import DockerInterface
 from ..models.languages import LANGUAGES
 from datetime import datetime
 import os
+import re
 
 # ここでviewを作成できる
 # Create your views here.
 def index(request):
-  post = ['python', 'print("hello!! this is from a view")']
-  post = ['php', '<?php \necho("hi!! Im come from view!");']
-  post = ['python', "import math\nprint(math.sqrt(81))"] # モジュールはインストールしないと使えない
+  # print(File.objects.get(id=33).getLang())
+  # print(File.objects.get(id=33).writeFile())
+  # File(
+  #   file_tag_name = 'sayHello',
+  #   code = 'print("hello", "this is completely done")',
+  #   file_name = 'sample_file_name',
+  #   file_path = 'path/to/file',
+  #   is_public = True,
+  #   is_importable = True,
+  #   is_executable = True,
+  #   created_at = datetime.now(),
+  #   updated_at = datetime.now(),
+  #   article = Article.objects.all().first(),
+  #   language = Language.objects.all().first(),
+  #   user = User(id=1),
+  # ).save()
+  # File.objects.last().writeFile()
 
-  # User(name='koh').save()
-  # Language(name='python').save()
-  # Article(title='pythonで標準出力する方法', body='pythonで標準出力する方法を紹介します', language=Language(id=1)).save()
-
-  # code = CodeController(lang=post[0], code=post[1])
-  # code.writeFile()
-
-  # output = Docker(code).run()
+  # output = Docker(File.objects.last()).run()
   # print(output)
 
-  # パラメータ受け取り
-  print(request.POST) # postパラメータ受け取り
-  print(request.GET) # getパラメータ受け取り
+  tree = createParamTree(request.POST)
+  print(tree)
 
   # 継承したテンプレートを返す
-  return render(request, 'child.html')
+  return render(request, 'index.html')
 
   # 文字列だけページに表示する
   return HttpResponse('Hello world!!')
 
-# settings.pyで必要なこと
-# INSTALLED_APPSにcoda（アプリケーション名）を追加する
-# これがないとtemplatesのレンダリングができない
 def test(request):
-  # return HttpResponse('test routing')
   return render(request, 'index.html')
 
 def djangoTemplateLanguage(request):
@@ -50,48 +53,70 @@ def djangoTemplateLanguage(request):
   }
   return render(request, 'dtl.html', param) # viewに変数を渡す
 
-example = {
-  'lang': 'python',
-  'code': 'print("hello coda!!")'
-}
+# 草案
+def createParamTree(params):
+  result = {}
+  for key in dict(params):
+    separated = re.split('(?!\[|\])(.*?[0-9])', key) # module4, [][], file1, [][]に分割できる
+    separated = [i for i in separated if not i is ''] # ''をリスト内から削除
 
-# Codeモデルを継承 Code
-class CodeController():
-  module_name = "SayHello"
-  language = "python"
-  code = 'print("Hello")'
-  file_name = "20221212_something_11.py"
-  file_path = ""
-  web_client_lang = False
-  user = 1
-  article = 1
-  created_at = datetime.now()
-  updated_at = datetime.now()
+    if len(separated) == 1:
+      result[separated[0]] = {}
+      result[separated[0]]['value'] = params.getlist(key)
+    elif len(separated) == 2:
+      if separated[1].startswith('file'):
+        result[separated[0]]['files'] = params.getlist(key)
 
-  # オブジェクト生成した瞬間にレコードが1件追加されるのか？
-  # case: 下書き、オンラインエディタとして実行
-  # →ファイル生成やpath設定を行っていい
-  # →実行したいだけなら？
-  # →レコードはいらない
-  def __init__(self, lang=example['lang'], code=example['code']) -> None:
-    self.language = lang
-    self.code = code
-    self.created_at = datetime.now()
+    print(separated, 'this is separated')
+  print(result, 'これで完成?')
 
-  def getLang(self):
-    return self.language
+def Toy1(separated):
+  # ["module4", "[][]"] これを ["module4[][]"] にする
+  array = []
+  for i in separated:
+    if not i.startswith('[]'):
+      array.append(i)
+    else:
+      array[-1] += i
+  print(array)
 
-  def writeFile(self):
-    # ファイル名: フォーマット
-    # YYYYMMDDHHmmSS_userid_1111.lang
-    date = self.created_at
-    self.file_name = str(date.year) + str(date.month) + str(date.day) + str(date.hour) + str(date.minute) + str(date.second) + '_' + '1' + '_' + '1111' + '.' + LANGUAGES[self.language]
-    self.file_path = os.path.join('coda/models/codes/user1', self.file_name)
+def Toy2(params):
+  """
+  # 仕様
+  # <input name='data[]' value='a'>
+  # <input name='data[]' value='b'>
+  # <input name='data[][]' value='c'>
+  # <input name='data[][]' value='d'>
+  # ↓こうする
+  # dict[key_name][depth][index]
+  # {
+  #   key_name: {
+  #     (depth)0: [],
+  #     (depth)1: []
+  #   }
+  # }
+  """
+  result = {}
+  for key in dict(params):
+    separated = re.split('(\[\])', key) # module4, [], file1を区切れるが、module4file1を分割できない
+    print(separated)
+    key_name = separated[0]
+    array_depth = separated.count('[]')
+    if key_name not in result:
+      result[key_name] = {}
+    result[key_name][array_depth] = params.getlist(key)
+  return result
 
-    with open(self.file_path, 'w', encoding='utf-8') as file: # 一時的にファイルオブジェクトを作り、書き込みを行う
-      file.write(self.code)
+def testPost():
+  # post項目
+  # ・user_id...auth_userから取得
+  # ・article...{title, body, is_public}
+  # ・module...
+  # name=module, 同じdepth0のインデックスで1〜3個を表現
+  # 各モジュール {name, is_public, is_importable, is_executable}
+  # ・File...
+  # name=file, 同じdepth0のインデックスで複数ファイルを表現
+  # {language, file_tag_name, code, is_public, is_importable, is_executable, user_id, article_id
+  #
 
-    return self
-
-  def exec(self, docker:DockerInterface): # 依存注入できるようにした（スタブを入れてテストできる）
-    docker.run()
+  return

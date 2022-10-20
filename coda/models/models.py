@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
+from .docker.docker import DockerInterface
 from django.contrib.auth import get_user, get_user_model
+from .languages import LANGUAGES
+import os
 
 # Create your models here.
 
@@ -154,7 +157,7 @@ class File(models.Model):
   language = models.ForeignKey(Language, on_delete=models.CASCADE)
   file_tag_name = models.CharField(max_length=255) # SayHello
   code = models.TextField() # print("Hello")
-  file_name = models.CharField(max_length=255)
+  file_name = models.CharField(max_length=255) # sample_file_name # データベースに保存する名前
   file_path = models.CharField(max_length=1023) # path/to/file
   is_public = models.BooleanField(default=True)
   is_importable = models.BooleanField(default=True)
@@ -163,6 +166,29 @@ class File(models.Model):
   article = models.ForeignKey(Article, on_delete=models.CASCADE)
   created_at = models.DateTimeField(auto_now_add=True)
   updated_at = models.DateTimeField(auto_now=True)
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+
+  def getLang(self):
+    return self.language.name
+
+  # fileのフルネームは保存しない
+  def getFullFileName(self):
+    language_extension = LANGUAGES[self.language.name]
+    return f"{self.created_at.strftime('%Y%m%d-%H%M%S')}_{str(self.user.id).zfill(4)}_{str(self.id).zfill(8)}.{language_extension}"
+
+  def writeFile(self):
+    file_name = self.getFullFileName()
+    file_path = os.path.join('coda/models/codes/user1', file_name)
+
+    with open(file_path, 'w', encoding='utf-8') as file: # 一時的にファイルオブジェクトを作り、書き込みを行う
+      file.write(self.code)
+
+    return self
+
+  def exec(self, docker:DockerInterface): # 依存注入できるようにした（スタブを入れてテストできる）
+    docker.run()
 
 class Article_Module_Dependencies(models.Model):
   """ArticleとModuleのN対N中間テーブル"""

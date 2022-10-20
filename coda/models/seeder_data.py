@@ -40,6 +40,7 @@ File(
   language = Language.objects.all().first(),
   user = User(id=1),
 ).save()
+File.objects.last().writeFile()
 
 Article_Module_Dependencies(
   article = Article.objects.all().first(),
