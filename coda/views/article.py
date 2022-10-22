@@ -8,7 +8,13 @@ from ..models.languages import LANGUAGES
 from .articleeditpagepostparam import ArticleEditPagePostParam
 from datetime import datetime
 import os
-# from ..models.seeder_data import variable # seeder
+# from ..models.seeder_data import * # seeder
+
+
+
+"""SQL
+select coda_module.id as module_id, coda_article.id as article_id, coda_file.id as file_id  from coda_module inner join coda_article_module_dependencies on coda_module.id = coda_article_module_dependencies.module_id inner join coda_article on coda_article.id = coda_article_module_dependencies.article_id inner join coda_module_file_dependencies on coda_module_file_dependencies.module_id = coda_module.id inner join coda_file on coda_file.id = coda_module_file_dependencies.file_id;
+"""
 
 def create(request):
   post = request.POST
@@ -17,8 +23,8 @@ def create(request):
   # print(post)
 
   print(post)
-  print('ここからcreateParamTree')
-  print(ArticleEditPagePostParam(post).data)
+  # print('ここからcreateParamTree')
+  # print(ArticleEditPagePostParam(post).data)
 
   # if 'csrfmiddlewaretoken' in post:
   #   File(
@@ -45,7 +51,50 @@ def create(request):
   #   }, ensure_ascii=False, indent=2)
   #   return HttpResponse(json_str)
 
-  return render(request, 'article/create_base.html')
+  return render(request, 'article/create_base.html', getArticlePageByArticleId())
+
+def getArticlePageByArticleId():
+  user_id = 1
+  article_id = 11
+
+  # ※article_idからすべてのデータを取得する
+  # フォーマット
+  # result = {
+  #   'modules': {
+  #     0: {
+  #       'module': module,
+  #       'files': {
+  #         0: file,
+  #         1: file,
+  #         2: file,
+  #       }
+  #     }
+  #   }
+  # }
+  # テンプレートではmodules[0].module.name, modules[0].files[0] などでアクセス
+  result = {
+    'modules': {}
+  }
+  # articleに対してhas manyであるモジュールすべて
+  article_dependency_modules = Article_Module_Dependencies.objects.filter(article=article_id).all()
+  # そのモジュール一つひとつをイテレータに
+  for i, dependency_module in enumerate(article_dependency_modules):
+    module = dependency_module.module
+    print(module)
+    result['modules'][i] = {
+      'module': module,
+      'files': {}
+    }
+    # モジュールに対してhas manyであるファイルすべて
+    module_dependency_files = Module_File_Dependencies.objects.filter(module=module.id).all()
+    # そのファイル一つ一つをイテレータとして取得する
+    for j, dependency_file in enumerate(module_dependency_files):
+      file = dependency_file.file
+      result['modules'][i]['files'][j] = file
+      print(file)
+  print(result)
+
+  return result
 
   """
   サンプルコード

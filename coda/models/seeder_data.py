@@ -8,8 +8,8 @@ from .languages import LANGUAGES
 # import os
 
 Article(
-  title = 'サンプル投稿',
-  body = '記事本文記事本文記事本文',
+  title = 'DjangoのORMについて',
+  body = '記事の本文です',
   is_public = True,
   user = User(id=1),
   created_at = datetime.now(),
@@ -17,7 +17,7 @@ Article(
 ).save()
 
 Module(
-  name = 'サンプルモジュール',
+  name = 'ORM_ver0.1',
   is_public = True,
   is_importable = True,
   is_executable = True,
@@ -27,8 +27,40 @@ Module(
 ).save()
 
 File(
-  file_tag_name = 'sayHello',
+  file_tag_name = 'ファイルA',
   code = 'print("hello, world!!")',
+  file_name = 'sample_file',
+  file_path = 'path/to/file',
+  is_public = True,
+  is_importable = True,
+  is_executable = True,
+  created_at = datetime.now(),
+  updated_at = datetime.now(),
+  article = Article.objects.all().first(),
+  language = Language.objects.all().first(),
+  user = User(id=1),
+).save()
+File.objects.last().writeFile()
+
+File(
+  file_tag_name = 'ファイルB',
+  code = 'print("hello, coda!!")',
+  file_name = 'sample_file',
+  file_path = 'path/to/file',
+  is_public = True,
+  is_importable = True,
+  is_executable = True,
+  created_at = datetime.now(),
+  updated_at = datetime.now(),
+  article = Article.objects.all().first(),
+  language = Language.objects.all().first(),
+  user = User(id=1),
+).save()
+File.objects.last().writeFile()
+
+File(
+  file_tag_name = 'ファイルC',
+  code = 'print("hello, CodaProject!!")',
   file_name = 'sample_file',
   file_path = 'path/to/file',
   is_public = True,
@@ -49,12 +81,13 @@ Article_Module_Dependencies(
   updated_at = datetime.now()
 ).save()
 
-Module_File_Dependencies(
-  module = Module.objects.all().first(),
-  file = File.objects.all().first(),
-  created_at = datetime.now(),
-  updated_at = datetime.now()
-).save()
+for file in File.objects.all():
+  Module_File_Dependencies(
+    module = Module.objects.all().first(),
+    file = file,
+    created_at = datetime.now(),
+    updated_at = datetime.now()
+  ).save()
 
 File_File_Dependencies(
   file = File.objects.all().first(),
@@ -86,4 +119,4 @@ Favorite(
   updated_at = datetime.now()
 ).save()
 
-variable = ''
+# variable = ''

@@ -2,23 +2,31 @@
 {% load static %}
 
 {% block styles %}
+<!-- font-awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-<!-- bootstrap -->
+<!-- bootstrap styles -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
+<!-- highlight.js styles -->
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/base16/summerfruit-light.min.css">
+
+<!-- app styles -->
 <link rel="stylesheet" href="{% static 'css/init.css' %}">
 <link rel="stylesheet" href="{% static 'css/create.css' %}">
-<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/base16/summerfruit-light.min.css">
-<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
+
 {% endblock %}
 
 {% block endbody_script %}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<!-- jquery -->
+<script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
 
-<!-- <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script> -->
+<!-- highlight.js -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+<!-- bootstrap js -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 <script>
   const editor = document.getElementById('editor-code')
   const code_output = document.getElementById('code-output');
@@ -29,6 +37,58 @@
 
   const execute = document.getElementsByClassName('execute')[0].firstElementChild;
   console.log(document.getElementsByName('csrfmiddlewaretoken')[0].value);
+
+  const file_add_button = document.getElementById('file-add-button');
+  file_add_button.addEventListener('click', function() {
+    const file_add = document.getElementsByClassName('file-add')[0];
+    const li = document.createElement('li')
+    li.className = 'nav-item';
+    li.setAttribute('role', 'presentation');
+    const button = document.createElement('button');
+    button.className = 'nav-link';
+    button.id = 'newfile-tab';
+    button.setAttribute('data-bs-toggle', 'tab');
+    button.setAttribute('data-bs-target', '#newfile');
+    button.setAttribute('type', 'button');
+    button.setAttribute('role', 'tab');
+    button.setAttribute('aria-controls', 'newfile');
+    button.setAttribute('aria-selected', 'false');
+    const input = document.createElement('input');
+    input.className = 'file-name-form';
+    input.setAttribute('type', 'text');
+    input.setAttribute('name', 'module1file4-name');
+    input.setAttribute('value', 'ファイルN');
+    const span = document.createElement('span');
+    span.innerHTML = '×'
+    button.appendChild(input);
+    button.appendChild(span);
+    li.appendChild(button);
+    const new_nav_item = `
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          id="newfile-tab"
+          data-bs-toggle="tab"
+          data-bs-target="#newfile"
+          type="button"
+          role="tab"
+          aria-controls="newfile"
+          aria-selected="false"
+        >
+          <input class="file-name-form" type="text" name="module1file4-name" value="ファイルN">
+          <span>×</span>
+        </button>
+      </li>`;
+    $('.tab-content').append(`<div
+        class="tab-pane fade"
+        id="newfile"
+        role="tabpanel"
+        aria-labelledby="newfile-tab"
+      >
+      {% include '../components/editor.html' %}
+      </div>`);
+    file_add.before(li);
+  });
 
   execute.addEventListener('click', function() {
     const xhr = new XMLHttpRequest();
@@ -53,6 +113,7 @@
         }
       } else {
         console.log('通信中...')
+        document.getElementsByClassName('output')[0].innerHTML = '<p>' + '通信中...' + '</p>';
       }
     }
 
@@ -87,6 +148,27 @@
     console.log(module_list);
   });
 
+  const codes_close_btn = document.getElementsByClassName('codes-toggle close')[0];
+  const codes_open_btn = document.getElementsByClassName('codes-toggle open')[0];
+
+  codes_close_btn.addEventListener('click', function() {
+    const codes = document.getElementsByClassName('codes')[0];
+    codes.classList.add('close');
+    codes.classList.remove('open');
+
+    codes_open_btn.classList.add('active');
+    codes_close_btn.classList.remove('active')
+  });
+
+  codes_open_btn.addEventListener('click', function() {
+    const codes = document.getElementsByClassName('codes')[0];
+    codes.classList.add('open');
+    codes.classList.remove('close');
+
+    codes_open_btn.classList.remove('active');
+    codes_close_btn.classList.add('active')
+  });
+
   const dropdowntoggle = document.getElementById('language-dropdownmenu-button');
   const dropdownitems = document.getElementsByClassName('language-dropdownitem');
   for (let i = 0; i < dropdownitems.length; i++) {
@@ -105,13 +187,19 @@
 {% block content %}
 <header></header>
 
+
 <main id="main" class="container">
+{{ modules.0.files }}
   <form action="http://localhost:8000/create/" method="POST">
     <div class="article-title-box">
       <input type="text" class="article-title-form" name="article-title" value="記事のタイトル">
     </div>
 
     <div class="module-container">
+      <div class="codes-toggle-button-box">
+        <span><i class="fa-solid fa-code codes-toggle open"></i></span>
+        <span><i class="fa-solid fa-pen-to-square codes-toggle close active"></i></span>
+      </div>
       <div class="module-toggle-button-box">
         <span><i class="fa-solid fa-chevron-down module-toggle close active"></i></span>
         <span><i class="fa-solid fa-chevron-up module-toggle open"></i></span>
@@ -166,6 +254,9 @@
       </div>
     </div>
 
+    <!-- ここからコード -->
+    <div class="codes">
+
     <!-- 切り替えタブ -->
     <ul class="nav nav-tabs" role="tablist">
       {% include '../components/dropdownmenu.html' %}
@@ -215,7 +306,7 @@
         </button>
       </li>
       <li class="file-add">
-        <button>＋</button>
+        <button type="button" id="file-add-button">＋</button>
       </li>
     </ul>
     <div class="tab-content">
@@ -246,6 +337,8 @@
     </div>
 
     {% include '../components/tabs.html' %}
+    </div>
+    <!-- ここまでコード -->
 
     {% include '../components/article-body.html' %}
     {% csrf_token %}
