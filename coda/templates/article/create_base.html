@@ -1,110 +1,254 @@
 {% extends '../app_base.html' %}
+{% load static %}
 
 {% block styles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<!-- bootstrap -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+<link rel="stylesheet" href="{% static 'css/init.css' %}">
+<link rel="stylesheet" href="{% static 'css/create.css' %}">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/base16/summerfruit-light.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+{% endblock %}
+
+{% block endbody_script %}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script> -->
+<script>
+  const editor = document.getElementById('editor-code')
+  const code_output = document.getElementById('code-output');
+  editor.addEventListener('input', function() {
+    code_output.innerHTML = this.value;
+    hljs.initHighlightingOnLoad();
+  });
+
+  const execute = document.getElementsByClassName('execute')[0].firstElementChild;
+  console.log(document.getElementsByName('csrfmiddlewaretoken')[0].value);
+
+  execute.addEventListener('click', function() {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', 'http://localhost:8000/create/', true);
+    xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
+
+    csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+    const module1file1_code = document.getElementsByName('module1file1-code')[0].value;
+    console.log('sended code = ' + module1file1_code);
+
+    xhr.send('module1file1-code=' + encodeURIComponent(module1file1_code) + '&' + 'csrfmiddlewaretoken=' + csrftoken);
+
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4) {
+        if (xhr.status == 200) {
+          console.log(JSON.parse(xhr.responseText));
+          result = JSON.parse(xhr.responseText)['result'];
+          document.getElementsByClassName('output')[0].innerHTML = '<p>' + result + '</p>';
+          // entity = JSON.parse(xhr.responseText).results[0];
+          // post_address = entity["address1"]+entity["address2"]+entity["address3"];
+          // result.innerHTML = entity["address1"]+entity["address2"]+entity["address3"];
+        }
+      } else {
+        console.log('通信中...')
+      }
+    }
+
+  });
+
+  const module_close_btn = document.getElementsByClassName('module-toggle close')[0];
+  const module_open_btn = document.getElementsByClassName('module-toggle open')[0];
+
+  module_close_btn.addEventListener('click', function() {
+    const module_list = document.getElementsByClassName('module-box');
+    const first_child = module_list[0];
+    for (let i = 1; i < module_list.length; i++) {
+      module_list[i].classList.add('close');
+      module_list[i].classList.remove('open');
+    }
+    module_open_btn.classList.add('active');
+    module_close_btn.classList.remove('active')
+
+    console.log(module_list);
+  });
+
+  module_open_btn.addEventListener('click', function() {
+    const module_list = document.getElementsByClassName('module-box');
+    const first_child = module_list[0];
+    for (let i = 1; i < module_list.length; i++) {
+      module_list[i].classList.add('open');
+      module_list[i].classList.remove('close');
+    }
+    module_open_btn.classList.remove('active');
+    module_close_btn.classList.add('active')
+
+    console.log(module_list);
+  });
+
+  const dropdowntoggle = document.getElementById('language-dropdownmenu-button');
+  const dropdownitems = document.getElementsByClassName('language-dropdownitem');
+  for (let i = 0; i < dropdownitems.length; i++) {
+    const dropdownitem = dropdownitems[i];
+    dropdownitem.addEventListener('click', function() {
+      console.log(this);
+      const language = this.value;
+      console.log(dropdowntoggle.setAttribute('value', language));
+    })
+  }
+
+
+</script>
 {% endblock %}
 
 {% block content %}
-
 <header></header>
 
-<form action="http://localhost:8000/create/" method="POST">
-  <!-- パラメータ -->
-  <input type="hidden" name="article-body" value="article-body">
-  <input type="hidden" name="article-is_public" value="true">
-  <input type="hidden" name="file1-language" value="python">
-  <input type="hidden" name="file1-file_tag_name" value="sayHello">
-
-
-  <div class="article-title">
-    <input type="text" class="article-title-form" name="article-title" value="">
-  </div>
-
-  <div class="module-container">
-    <div class="module-open-button">
-      <span class="plus-design"></span>
+<main id="main" class="container">
+  <form action="http://localhost:8000/create/" method="POST">
+    <div class="article-title-box">
+      <input type="text" class="article-title-form" name="article-title" value="記事のタイトル">
     </div>
-    <div>
-      <input type="text" class="module-name-form" name="module_name" value="">
-    </div>
-  </div>
 
-  <!-- 切り替えタブ -->
-  <ul class="nav nav-tabs" id="myTab" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button
-        class="nav-link active"
-        id="home-tab"
-        data-bs-toggle="tab"
-        data-bs-target="#home"
-        type="button"
-        role="tab"
-        aria-controls="home"
-        aria-selected="true"
+    <div class="module-container">
+      <div class="module-toggle-button-box">
+        <span><i class="fa-solid fa-chevron-down module-toggle close active"></i></span>
+        <span><i class="fa-solid fa-chevron-up module-toggle open"></i></span>
+      </div>
+      <div class="box">
+        <div class="module1 module-box">
+          <div class="module1 module-open-button-box">
+            <span class="module1 module-open-button">＋</span>
+          </div>
+          <div class="module-name-box">
+            <div class="module1 module-name">
+              <input id="module1-name-form" type="text" class="module1 module-name-form" name="module1-name" value="すごいモジュールの名前">
+            </div>
+            <div class="module-name-edit">
+              <label for="module1-name-form">
+                <span><i class="fa-solid fa-pen"></i></span>
+              </label>
+            </div>
+          </div>
+
+        </div>
+        <div class="module2 module-box">
+          <div class="module2 module-open-button-box">
+            <span class="module2 module-open-button">＋</span>
+          </div>
+          <div class="module-name-box">
+            <div class="module2 module-name">
+              <input id="module2-name-form" type="text" class="module2 module-name-form" name="module2-name" value="エレガントなモジュールの名前">
+            </div>
+            <div class="module-name-edit">
+              <label for="module2-name-form">
+                <span><i class="fa-solid fa-pen"></i></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="module3 module-box">
+          <div class="module3 module-open-button-box">
+            <span class="module3 module-open-button">＋</span>
+          </div>
+          <div class="module-name-box">
+            <div class="module3 module-name">
+              <input id="module3-name-form" type="text" class="module3 module-name-form" name="module3-name" value="素敵なモジュールの名前">
+            </div>
+            <div class="module-name-edit">
+              <label for="module3-name-form">
+                <span><i class="fa-solid fa-pen"></i></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 切り替えタブ -->
+    <ul class="nav nav-tabs" role="tablist">
+      {% include '../components/dropdownmenu.html' %}
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link active"
+          id="home-tab"
+          data-bs-toggle="tab"
+          data-bs-target="#home"
+          type="button"
+          role="tab"
+          aria-controls="home"
+          aria-selected="true"
+        >
+        <input class="file-name-form" type="text" name="module1file1-name" value="ファイルA">
+        <span>×</span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          id="profile-tab"
+          data-bs-toggle="tab"
+          data-bs-target="#profile"
+          type="button"
+          role="tab"
+          aria-controls="profile"
+          aria-selected="false"
+        >
+          <input class="file-name-form" type="text" name="module1file2-name" value="ファイルB">
+          <span>×</span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          id="contact-tab"
+          data-bs-toggle="tab"
+          data-bs-target="#contact"
+          type="button"
+          role="tab"
+          aria-controls="contact"
+          aria-selected="false"
+        >
+          <input class="file-name-form" type="text" name="module1file3-name" value="ファイルC">
+          <span>×</span>
+        </button>
+      </li>
+      <li class="file-add">
+        <button>＋</button>
+      </li>
+    </ul>
+    <div class="tab-content">
+      <div
+        class="tab-pane fade show active"
+        id="home"
+        role="tabpanel"
+        aria-labelledby="home-tab"
       >
-        ファイルA
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button
-        class="nav-link"
-        id="profile-tab"
-        data-bs-toggle="tab"
-        data-bs-target="#profile"
-        type="button"
-        role="tab"
-        aria-controls="profile"
-        aria-selected="false"
+      {% include '../components/editor.html' %}
+      </div>
+      <div
+        class="tab-pane fade"
+        id="profile"
+        role="tabpanel"
+        aria-labelledby="profile-tab"
       >
-        ファイルB
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button
-        class="nav-link"
-        id="contact-tab"
-        data-bs-toggle="tab"
-        data-bs-target="#contact"
-        type="button"
-        role="tab"
-        aria-controls="contact"
-        aria-selected="false"
+      {% include '../components/editor.html' %}
+      </div>
+      <div
+        class="tab-pane fade"
+        id="contact"
+        role="tabpanel"
+        aria-labelledby="contact-tab"
       >
-        ファイルC
-      </button>
-    </li>
-  </ul>
-  <div class="tab-content" id="myTabContent">
-    <div
-      class="tab-pane fade show active"
-      id="home"
-      role="tabpanel"
-      aria-labelledby="home-tab"
-    >
-    {% include './editor.html' %}
+      {% include '../components/editor.html' %}
+      </div>
     </div>
-    <div
-      class="tab-pane fade"
-      id="profile"
-      role="tabpanel"
-      aria-labelledby="profile-tab"
-    >
-      ...
-    </div>
-    <div
-      class="tab-pane fade"
-      id="contact"
-      role="tabpanel"
-      aria-labelledby="contact-tab"
-    >
-      ...
-    </div>
-  </div>
 
-  {% include '../components/tabs.html' %}
+    {% include '../components/tabs.html' %}
 
-  <input type="submit" value="送信">
-  {% csrf_token %}
-</form>
+    {% include '../components/article-body.html' %}
+    {% csrf_token %}
+  </form>
+</main>
 {% endblock %}

@@ -28,8 +28,8 @@ Module(
 
 File(
   file_tag_name = 'sayHello',
-  code = 'print("hello")',
-  file_name = 'sample_file_name',
+  code = 'print("hello, world!!")',
+  file_name = 'sample_file',
   file_path = 'path/to/file',
   is_public = True,
   is_importable = True,

@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from coda.views.views import test, djangoTemplateLanguage # 直接importしてルーティングを定義することもできる
+from coda.views.views import djangoTemplateLanguage # 直接importしてルーティングを定義することもできる
 
 # import debugpy
 # port = 5678

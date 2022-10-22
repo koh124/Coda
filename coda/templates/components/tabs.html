@@ -1,14 +1,17 @@
 <!-- 切り替えタブ -->
-<ul class="nav nav-tabs" id="myTab" role="tablist">
+<ul class="nav nav-tabs" id="" role="tablist">
+  <li class="execute">
+    <button type="button" class="btn btn-success">実行する</button>
+  </li>
   <li class="nav-item" role="presentation">
     <button
       class="nav-link active"
-      id="home-tab"
+      id="input-tab"
       data-bs-toggle="tab"
-      data-bs-target="#home"
+      data-bs-target="#input"
       type="button"
       role="tab"
-      aria-controls="home"
+      aria-controls="input"
       aria-selected="true"
     >
       input
@@ -17,58 +20,85 @@
   <li class="nav-item" role="presentation">
     <button
       class="nav-link"
-      id="profile-tab"
+      id="output-tab"
       data-bs-toggle="tab"
-      data-bs-target="#profile"
+      data-bs-target="#output"
       type="button"
       role="tab"
-      aria-controls="profile"
+      aria-controls="output"
       aria-selected="false"
     >
       output
-    </button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button
-      class="nav-link"
-      id="contact-tab"
-      data-bs-toggle="tab"
-      data-bs-target="#contact"
-      type="button"
-      role="tab"
-      aria-controls="contact"
-      aria-selected="false"
-    >
-      Contact
     </button>
   </li>
 </ul>
 <div class="tab-content" id="myTabContent">
   <div
     class="tab-pane fade show active"
-    id="home"
+    id="input"
     role="tabpanel"
-    aria-labelledby="home-tab"
+    aria-labelledby="input-tab"
   >
-
-  <!-- エディタ -->
-  <textarea name="code" id="" cols="30" rows="10"></textarea>
-
+    <!-- input入力欄 -->
+    <div class="editor-container input">
+      <div class="editor-lines">
+        <div class="line">
+          <span>1</span>
+        </div>
+        <div class="line">
+          <span>2</span>
+        </div>
+        <div class="line">
+          <span>3</span>
+        </div>
+        <div class="line">
+          <span>4</span>
+        </div>
+        <div class="line">
+          <span>5</span>
+        </div>
+      </div>
+      <div class="editor-main editor-input-tab">
+        <textarea class="editor" cols="30" rows="30"></textarea>
+      </div>
+      <div class="line-highlight"></div>
+      <div class="line-highlight2"></div>
+      <div class="line-highlight3"></div>
+      <div class="line-highlight4"></div>
+    </div>
   </div>
   <div
     class="tab-pane fade"
-    id="profile"
+    id="output"
     role="tabpanel"
-    aria-labelledby="profile-tab"
+    aria-labelledby="output-tab"
   >
-    ...
+  <!-- outputパネル -->
+  <div class="editor-container output">
+    <div class="editor-lines">
+      <div class="line">
+        <span>1</span>
+      </div>
+      <div class="line">
+        <span>2</span>
+      </div>
+      <div class="line">
+        <span>3</span>
+      </div>
+      <div class="line">
+        <span>4</span>
+      </div>
+      <div class="line">
+        <span>5</span>
+      </div>
+    </div>
+    <div class="editor-main editor-output-tab">
+      <p class="output">ここに出力</p>
+    </div>
+    <div class="line-highlight"></div>
+    <div class="line-highlight2"></div>
+    <div class="line-highlight3"></div>
+    <div class="line-highlight4"></div>
   </div>
-  <div
-    class="tab-pane fade"
-    id="contact"
-    role="tabpanel"
-    aria-labelledby="contact-tab"
-  >
-    ...
   </div>
 </div>

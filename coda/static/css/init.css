@@ -15,6 +15,10 @@ body {
   /* padding: 32px; */
 }
 
+img {
+  vertical-align: bottom;
+}
+
 a {
   color: white;
 }

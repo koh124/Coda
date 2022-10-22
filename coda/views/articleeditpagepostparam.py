@@ -1,9 +1,5 @@
-from array import ArrayType
-from multiprocessing.dummy import Array
 import re
-from unittest import result
 
-from pytest import param
 
 """
 POSTパラメータ命名規則
@@ -36,7 +32,6 @@ class ArticleEditPagePostParam():
     print(self.article)
     print(self.modules)
     print(self.files)
-
 
   def createParamTree(self, post):
     result = {}
