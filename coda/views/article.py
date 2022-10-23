@@ -26,30 +26,30 @@ def create(request):
   # print('ここからcreateParamTree')
   # print(ArticleEditPagePostParam(post).data)
 
-  # if 'csrfmiddlewaretoken' in post:
-  #   File(
-  #     file_tag_name = 'MyPostCode',
-  #     code = post['module1file1-code'],
-  #     file_name = 'mypostcode',
-  #     file_path = 'path/to/file',
-  #     is_public = True,
-  #     is_importable = True,
-  #     is_executable = True,
-  #     created_at = datetime.now(),
-  #     updated_at = datetime.now(),
-  #     article = Article.objects.all().first(),
-  #     language = Language.objects.all().filter(id=39).first(),
-  #     user = User(id=1),
-  #   ).save()
-  #   File.objects.last().writeFile()
+  if 'csrfmiddlewaretoken' in post:
+    File(
+      file_tag_name = 'MyPostCode',
+      code = post['module35file150-code'],
+      file_name = 'mypostcode',
+      file_path = 'path/to/file',
+      is_public = True,
+      is_importable = True,
+      is_executable = True,
+      created_at = datetime.now(),
+      updated_at = datetime.now(),
+      article = Article.objects.all().first(),
+      language = Language.objects.filter(name=post['language']).first(),
+      user = User(id=1),
+    ).save()
+    File.objects.last().writeFile()
 
-  #   output = Docker(File.objects.last()).run()
-  #   print(output)
+    output = Docker(File.objects.last()).run()
+    print(output)
 
-  #   json_str = json.dumps({
-  #     'result': output
-  #   }, ensure_ascii=False, indent=2)
-  #   return HttpResponse(json_str)
+    json_str = json.dumps({
+      'result': output
+    }, ensure_ascii=False, indent=2)
+    return HttpResponse(json_str)
 
   return render(request, 'article/create_base.html', getArticlePageByArticleId())
 
