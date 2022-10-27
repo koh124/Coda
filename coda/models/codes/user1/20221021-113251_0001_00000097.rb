@@ -1,1 +1,0 @@
-print "Ruby: hello world!!"

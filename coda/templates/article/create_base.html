@@ -28,6 +28,31 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 <script>
   const LANGUAGES = ['python', 'Python', 'php', 'PHP', 'ruby', 'Ruby', 'javascript', 'css', 'html'];
+  const CSRF_TOKEN = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+
+  const getTextAreaLineCount = function(value) {
+    return value.split(/\r*\n/).length;
+  }
+
+  const getActiveFileTab = function() {
+    return document.querySelector('.tab-pane.code.show.active');
+  }
+
+  const highLightLine = function(value) {
+    $('.line-highlight').css('top', `calc(23.625px * ${getTextAreaLineCount(value) - 1})`);
+  }
+
+  const sendAjaxRequest = function(url, method, data, success, failed) {
+    $.ajax(url, {
+      type: method,
+      data: data,
+      dataType: 'xml'
+    }).done(function(result) {
+      success()
+    }).fail(function(result) {
+      failed()
+    })
+  }
 
   const editors = document.querySelectorAll('textarea.editor-code');
   const code_outputs = document.querySelectorAll('code.code-output');
@@ -133,9 +158,12 @@
     xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
 
     csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-    const module1file1_code = document.getElementsByName('module35file150-code')[0].value;
-    const activeFileTab = document.querySelector('.tab-pane.code.show.active');
-    const activeCode = $(activeFileTab).find('code.code-output')[0];
+    const active_module_id = $('.module-box.show').attr('id');//ここ
+    const activeFileTab = $('.tab-pane.code.show.active');
+    const active_file_id = activeFileTab.attr('id')
+    const code_name = activeFileTab.find('textarea').attr('name');
+    const code = activeFileTab.find('textarea').val();
+    const activeCode = activeFileTab.find('code.code-output')[0];
     const class_list = activeCode.classList;
 
     let language;
@@ -146,8 +174,8 @@
       }
     }
 
-    console.log('sended code = ' + module1file1_code);
-    const post_param = 'language=' + language + '&' + 'module35file150-code=' + encodeURIComponent(module1file1_code) + '&' + 'csrfmiddlewaretoken=' + csrftoken;
+    console.log('sended code = ' + code);
+    const post_param = 'language=' + language + '&' + code_name + '=' + encodeURIComponent(code) + '&' + 'csrfmiddlewaretoken=' + csrftoken;
     xhr.send(post_param);
     console.log(language, '言語');
 
@@ -165,68 +193,209 @@
     }
   });
 
+  const module_add_btn = $('.module-add-button')[0];
+  module_add_btn.addEventListener('click', function() {
+    // モジュール追加処理
+    const count_new_module_box = $('.module-box.new').length;
+    const module_id = 'module_new' + String(count_new_module_box);
+    const new_module_box = `<div id="${module_id}" class="${module_id} module-box new">
+          <div class="module-name-box">
+            <div class="${module_id} module-name">
+              <input id="${module_id}-name-form" type="text" class="${module_id} module-name-form" name="${module_id}-name" value="module">
+            </div>
+            <div class="module-name-edit">
+              <label for="${module_id}-name-form">
+                <span><i class="fa-solid fa-pen"></i></span>
+              </label>
+            </div>
+          </div>
+        </div>`;
+    $('.module-box').last().after(new_module_box);
+
+    // 追加したモジュールにファイルタブを用意する処理
+    const count_new_file = $('ul.nav.nav-tabs').children('li.nav-item.new').length;
+    const new_file_nav_item = `<li class="nav-item ${module_id} none" role="presentation">
+            <button
+              class="nav-link new"
+              id="file_new${count_new_file}-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#file_new${count_new_file}"
+              type="button"
+              role="tab"
+              aria-controls="file_new${count_new_file}"
+              aria-selected="true"
+            >
+            <input class="file-name-form" type="text" name="file_new${count_new_file}-name" value="ファイル">
+            <span>×</span>
+            </button>
+          </li>`;
+    const file_add_button = $('.file-add');
+    file_add_button.before(new_file_nav_item);
+
+    // 追加したファイルタブに対応するコンテンツを追加する処理
+    const new_tab_pane = `<div
+      class="file_new${count_new_file} tab-pane fade code"
+      id="file_new${count_new_file}"
+      role="tabpanel"
+      aria-labelledby="file_new${count_new_file}-tab"
+    >
+    <div class="editor-container">
+      <div class="editor-lines"></div>
+      <div class="editor-main editor-code">
+        <textarea class="editor editor-code editor-codefile_new${count_new_file}" cols="30" rows="30" name="${module_id}file_new${count_new_file}-code"></textarea>
+        <pre><code class="python code-output code-outputfile_new${count_new_file}"></code></pre>
+      </div>
+      <div class="line-highlight"></div>
+    </div>
+    </div>`;
+    $('.tab-content.files').append(new_tab_pane);
+
+    // 追加したモジュールにクリックイベントを付与する処理
+    const appended_module_box = $('.module-box').last()[0];
+    appended_module_box.addEventListener('click', function() {
+      const active_nav_items = $(`.nav-item.${module_id}`);
+      for (let i = 0; i < active_nav_items.length; i++) {
+        $(active_nav_items[i]).removeClass('none');
+        $(active_nav_items[i]).find('button.nav-link.active').removeClass('active');
+      }
+      $(this).addClass('show');
+
+      $(active_nav_items[0]).find('button.nav-link').addClass('active');
+      const non_active_nav_items = $('.nav-item').not(`.${module_id}`).not('#input-nav-item').not('#output-nav-item');
+      console.log(non_active_nav_items)
+      for (let i = 0; i < non_active_nav_items.length; i++) {
+        $(non_active_nav_items[i]).addClass('none');
+        $(non_active_nav_items[i]).find('button.nav-link.active').not('#input-tab').not('#output-tab').removeClass('active');
+      }
+      $('.module-box').not(`.${module_id}`).removeClass('show');
+
+      $('.tab-pane.code.active.show').removeClass('active show');
+      const visible_tab_contents = $(`.tab-pane.code.file_new${count_new_file}`);
+      $(visible_tab_contents[0]).addClass('active show');
+      for (let i = 0; i < visible_tab_contents.length; i++) {
+        $(visible_tab_contents[i]).removeClass('none');
+      }
+      const non_visible_tab_contents = $('.tab-pane.code').not(`.file_new${count_new_file}`);
+      for (let i = 0; i < non_visible_tab_contents.length; i++) {
+        $(non_visible_tab_contents[i]).addClass('none');
+      }
+
+      // hljsを適用する処理
+      const created_file = $(`.tab-pane.code.active.show.file_new${count_new_file}`);
+      const created_editor = created_file.find('textarea.editor-code')[0];
+      const created_code_output = created_file.find('code.code-output')[0];
+
+      created_editor.addEventListener('input', function() {
+        created_code_output.textContent = this.value;
+        hljs.initHighlightingOnLoad();
+
+        const parent = this;
+        const lines = function() { return parent.value.split(/\r*\n/); }
+        const lineCount = (function() { return lines().length; })()
+        console.log(lineCount);
+
+        const activeFileTab = document.querySelector('.tab-pane.code.show.active');
+        const activeEditorLines = $(activeFileTab).find('.editor-container .editor-lines')[0];
+        let elements = ''
+        for (let i = 1; i <= lineCount; i++) {
+          elements += `<div class="line"><span>${i}</span></div>`;
+        }
+        activeEditorLines.innerHTML = elements;
+
+        const line_highlight = $('.line-highlight');
+        line_highlight.css('top', `calc(23.625px * ${lineCount - 1})`);
+      });
+
+      // focusイベントでも発火させないと、行数が表示されない
+      created_editor.addEventListener('focus', function() {
+        const parent = this;
+        const lines = function() { return parent.value.split(/\r*\n/); }
+        const lineCount = (function() { return lines().length; })()
+        console.log(lineCount);
+
+        const activeFileTab = document.querySelector('.tab-pane.code.show.active');
+        const activeEditorLines = $(activeFileTab).find('.editor-container .editor-lines')[0];
+        let elements = ''
+        for (let i = 1; i <= lineCount; i++) {
+          elements += `<div class="line"><span>${i}</span></div>`;
+        }
+        activeEditorLines.innerHTML = elements;
+
+        const line_highlight = $('.line-highlight');
+        line_highlight.css('top', `calc(23.625px * ${lineCount - 1})`);
+      });
+
+    });
+  });
+
+
   const module_close_btn = document.getElementsByClassName('module-toggle close')[0];
   const module_open_btn = document.getElementsByClassName('module-toggle open')[0];
 
-  module_close_btn.addEventListener('click', function() {
-    const module_list = document.getElementsByClassName('module-box');
-    const first_child = module_list[0];
-    for (let i = 1; i < module_list.length; i++) {
-      module_list[i].classList.add('close');
-      module_list[i].classList.remove('open');
-    }
-    module_open_btn.classList.add('active');
-    module_close_btn.classList.remove('active')
-
-    console.log(module_list);
-  });
-
-  module_open_btn.addEventListener('click', function() {
-    const module_list = document.getElementsByClassName('module-box');
-    const first_child = module_list[0];
-    for (let i = 1; i < module_list.length; i++) {
-      module_list[i].classList.add('open');
-      module_list[i].classList.remove('close');
-    }
-    module_open_btn.classList.remove('active');
-    module_close_btn.classList.add('active')
-
-    console.log(module_list);
-  });
+  const addClickEventToModuleCloseBtn = function() {
+    module_close_btn.addEventListener('click', function() {
+      const active_module_id = $('.module-box.show').attr('id');
+      const non_active_modules = $('.module-box').not('.' + active_module_id);
+      console.log(active_module_id);
+      console.log(non_active_modules);
+      for (let i = 0; i < non_active_modules.length; i++) {
+        non_active_modules[i].classList.add('close');
+      }
+      module_open_btn.classList.add('active');
+      module_close_btn.classList.remove('active');
+    });
+  }
+  const addClickEventToModuleOpenBtn = function() {
+    module_open_btn.addEventListener('click', function() {
+      const active_module_id = $('.module-box.show').attr('id');
+      const non_active_modules = $('.module-box').not('.' + active_module_id);
+      console.log(active_module_id)
+      console.log(non_active_modules);
+      for (let i = 0; i < non_active_modules.length; i++) {
+        non_active_modules[i].classList.remove('close');
+      }
+      module_open_btn.classList.remove('active');
+      module_close_btn.classList.add('active')
+    });
+  }
+  addClickEventToModuleCloseBtn();
+  addClickEventToModuleOpenBtn();
 
   const codes_close_btn = document.getElementsByClassName('codes-toggle close')[0];
   const codes_open_btn = document.getElementsByClassName('codes-toggle open')[0];
+  const addClickEventToCodesCloseBtn = function() {
+    codes_close_btn.addEventListener('click', function() {
+      const codes = document.getElementsByClassName('codes')[0];
+      codes.classList.add('close');
+      codes.classList.remove('open');
 
-  codes_close_btn.addEventListener('click', function() {
-    const codes = document.getElementsByClassName('codes')[0];
-    codes.classList.add('close');
-    codes.classList.remove('open');
+      codes_open_btn.classList.add('active');
+      codes_close_btn.classList.remove('active')
+    });
+  }
+  const addClickEventToCodesOpenBtn = function() {
+    codes_open_btn.addEventListener('click', function() {
+      const codes = document.getElementsByClassName('codes')[0];
+      codes.classList.add('open');
+      codes.classList.remove('close');
 
-    codes_open_btn.classList.add('active');
-    codes_close_btn.classList.remove('active')
-  });
+      codes_open_btn.classList.remove('active');
+      codes_close_btn.classList.add('active')
+    });
+  }
+  addClickEventToCodesCloseBtn();
+  addClickEventToCodesOpenBtn();
 
-  codes_open_btn.addEventListener('click', function() {
-    const codes = document.getElementsByClassName('codes')[0];
-    codes.classList.add('open');
-    codes.classList.remove('close');
-
-    codes_open_btn.classList.remove('active');
-    codes_close_btn.classList.add('active')
-  });
-
+  // 言語選択したときにcodeやドロップダウンメニューの表示を対応させる処理
   const dropdowntoggle = document.getElementById('language-dropdownmenu-button');
   const dropdownitems = document.getElementsByClassName('language-dropdownitem');
   for (let i = 0; i < dropdownitems.length; i++) {
     const dropdownitem = dropdownitems[i];
     dropdownitem.addEventListener('click', function() {
-      console.log(this);
       const language = this.value;
-      console.log(dropdowntoggle.setAttribute('value', language));
+      dropdowntoggle.setAttribute('value', language);
       const activeFileTab = document.querySelector('.tab-pane.code.show.active');
       const activeCode = $(activeFileTab).find('code.code-output')[0];
-      console.log(activeCode);
-      console.log(LANGUAGES);
       {
         const class_list = activeCode.classList;
         class_str = '';
@@ -238,13 +407,44 @@
         }
         class_str += (language + ' ' + 'language-' + language);
         activeCode.setAttribute('class', class_str);
-        console.log(class_str);
-        console.log(activeCode);
       }
-      console.log(activeCode.classList);
     });
   }
 
+  const modules = document.querySelectorAll('.module-name-box');
+  for (let i = 0; i < modules.length; i++) {
+    modules[i].addEventListener('click', function() {
+      const clicked_module_id = $(this).parent('.module-box').attr('id');
+      // 違うモジュールのファイルタブの停止
+      const active_nav_items = $(`.nav-item.${clicked_module_id}`).not('#input-tab').not('#output-tab');
+      for (let i = 0; i < active_nav_items.length; i++) {
+        $(active_nav_items[i]).removeClass('none');
+        $(active_nav_items[i]).find('button.nav-link.active').removeClass('active');
+        //複数タブactiveになっている可能性があるから、すべて非activeにしたあとactiveにする
+      }
+      $(this).parent('.module-box').addClass('show');
+
+      $(active_nav_items[0]).find('button.nav-link').addClass('active');
+      const non_active_nav_items = $('.nav-item').not(`.${clicked_module_id}`).not('#input-nav-item').not('#output-nav-item');
+      console.log(non_active_nav_items)
+      for (let i = 0; i < non_active_nav_items.length; i++) {
+        $(non_active_nav_items[i]).addClass('none');
+        $(non_active_nav_items[i]).find('button.nav-link.active').not('#input-tab').not('#output-tab').removeClass('active');
+      }
+      $('.module-box').not(`.${clicked_module_id}`).removeClass('show');
+
+      $('.tab-pane.code.active.show').removeClass('active show');
+      const visible_tab_contents = $(`.tab-pane.code.${clicked_module_id}`);
+      $(visible_tab_contents[0]).addClass('active show');
+      for (let i = 0; i < visible_tab_contents.length; i++) {
+        $(visible_tab_contents[i]).removeClass('none');
+      }
+      const non_visible_tab_contents = $('.tab-pane.code').not(`.${clicked_module_id}`);
+      for (let i = 0; i < non_visible_tab_contents.length; i++) {
+        $(non_visible_tab_contents[i]).addClass('none');
+      }
+    })
+  }
 
 </script>
 {% endblock %}
@@ -270,10 +470,7 @@
       <div class="box">
         <!-- モジュールの繰り返し -->
         {% for key, value in modules.items %}
-        <div class="module{{ value.module.id }} module-box">
-          <div class="module{{ value.module.id }} module-open-button-box">
-            <span class="module{{ value.module.id }} module-open-button">＋</span>
-          </div>
+        <div id="module{{ value.module.id }}" class="module{{ value.module.id }} module-box {% if key is 0 %}show{% endif %}">
           <div class="module-name-box">
             <div class="module{{ value.module.id }} module-name">
               <input id="module{{ value.module.id }}-name-form" type="text" class="module{{ value.module.id }} module-name-form" name="module{{ value.module.id }}-name" value="{{ value.module.name }}">
@@ -286,6 +483,9 @@
           </div>
         </div>
         {% endfor %}
+        <div class="module-add-button-box">
+          <span class="module-add-button">＋</span>
+        </div>
       </div>
     </div>
 
@@ -298,18 +498,18 @@
 
       {% for m_index, module in modules.items %}
         {% for f_index, file in module.files.items %}
-          <li class="nav-item" role="presentation">
+          <li class="nav-item module{{ module.module.id }} {% if m_index is not 0 %}none{% endif %}" role="presentation">
             <button
               class="nav-link {% if f_index is 0 %}active{% endif %}"
-              id="f{{ file.id }}-tab"
+              id="file{{ file.id }}-tab"
               data-bs-toggle="tab"
-              data-bs-target="#f{{ file.id }}"
+              data-bs-target="#file{{ file.id }}"
               type="button"
               role="tab"
-              aria-controls="f{{ file.id }}"
+              aria-controls="file{{ file.id }}"
               aria-selected="true"
             >
-            <input class="file-name-form" type="text" name="module{{ module.id }}file{{ file.id }}-name" value="{{ file.file_tag_name }}">
+            <input class="file-name-form" type="text" name="module{{ module.module.id }}file{{ file.id }}-name" value="{{ file.file_tag_name }}">
             <span>×</span>
             </button>
           </li>
@@ -322,14 +522,14 @@
 
     </ul>
 
-    <div class="tab-content">
+    <div class="tab-content files">
       {% for m_index, module in modules.items %}
         {% for f_index, file in module.files.items %}
           <div
-            class="tab-pane fade code {% if f_index is 0 %}show active{% endif %}"
-            id="f{{ file.id }}"
+            class="module{{ module.module.id }} tab-pane fade code {% if f_index is 0 and m_index is 0 %}show active{% endif %}"
+            id="file{{ file.id }}"
             role="tabpanel"
-            aria-labelledby="f{{ file.id }}-tab"
+            aria-labelledby="file{{ file.id }}-tab"
           >
           {% include '../components/editor.html' %}
           </div>

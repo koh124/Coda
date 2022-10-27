@@ -17,7 +17,7 @@ Article(
 ).save()
 
 Module(
-  name = 'ORM_ver0.1',
+  name = 'ORM_ver0.2',
   is_public = True,
   is_importable = True,
   is_executable = True,
@@ -27,8 +27,24 @@ Module(
 ).save()
 
 File(
-  file_tag_name = 'ファイルA',
-  code = 'print("hello, world!!")',
+  file_tag_name = 'ファイルD',
+  code = '<?php echo "Hello, Seader, and php!!"',
+  file_name = 'sample_file',
+  file_path = 'path/to/file',
+  is_public = True,
+  is_importable = True,
+  is_executable = True,
+  created_at = datetime.now(),
+  updated_at = datetime.now(),
+  article = Article.objects.all().first(),
+  language = Language.objects.all().get(id=40),
+  user = User(id=1),
+).save()
+File.objects.last().writeFile()
+
+File(
+  file_tag_name = 'ファイルE',
+  code = 'print("hello, Seader, and Python!!")',
   file_name = 'sample_file',
   file_path = 'path/to/file',
   is_public = True,
@@ -43,8 +59,8 @@ File(
 File.objects.last().writeFile()
 
 File(
-  file_tag_name = 'ファイルB',
-  code = 'print("hello, coda!!")',
+  file_tag_name = 'ファイルF',
+  code = 'echo "Hello, Seader, and Ruby"',
   file_name = 'sample_file',
   file_path = 'path/to/file',
   is_public = True,
@@ -53,37 +69,21 @@ File(
   created_at = datetime.now(),
   updated_at = datetime.now(),
   article = Article.objects.all().first(),
-  language = Language.objects.all().first(),
-  user = User(id=1),
-).save()
-File.objects.last().writeFile()
-
-File(
-  file_tag_name = 'ファイルC',
-  code = 'print("hello, CodaProject!!")',
-  file_name = 'sample_file',
-  file_path = 'path/to/file',
-  is_public = True,
-  is_importable = True,
-  is_executable = True,
-  created_at = datetime.now(),
-  updated_at = datetime.now(),
-  article = Article.objects.all().first(),
-  language = Language.objects.all().first(),
+  language = Language.objects.get(id=41),
   user = User(id=1),
 ).save()
 File.objects.last().writeFile()
 
 Article_Module_Dependencies(
   article = Article.objects.all().first(),
-  module = Module.objects.all().first(),
+  module = Module.objects.all().last(),
   created_at = datetime.now(),
   updated_at = datetime.now()
 ).save()
 
-for file in File.objects.all():
+for file in File.objects.all().reverse():
   Module_File_Dependencies(
-    module = Module.objects.all().first(),
+    module = Module.objects.all().last(),
     file = file,
     created_at = datetime.now(),
     updated_at = datetime.now()
