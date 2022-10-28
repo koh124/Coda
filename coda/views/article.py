@@ -77,9 +77,11 @@ def create(request):
   #   print(i)
   # print(post)
 
-  print(post)
+  # print(post)
   # print('ここからcreateParamTree')
   # print(ArticleEditPagePostParam(post).data)
+
+  # return
 
   if 'csrfmiddlewaretoken' in post:
     File(
@@ -106,6 +108,7 @@ def create(request):
     }, ensure_ascii=False, indent=2)
     return HttpResponse(json_str)
 
+  return render(request, 'article/create_base.html')
   return render(request, 'article/create_base.html', getArticlePageByArticleId())
 
 def getArticlePageByArticleId():

@@ -29,9 +29,14 @@ class ArticleEditPagePostParam():
         self.files = ([i for i in self.data[model_name]])
     print('ここからコンストラクタ')
     print(self.data)
-    print(self.article)
-    print(self.modules)
-    print(self.files)
+    print(self.article, self.article['title'], self.article['body'])
+    print(self.modules, self.modules[0])
+    print(self.files, self.files[0])
+
+    print(self.data['module_new0']['file_new0']['code'], '成功？')
+    print(self.data['module_new0']['file_new1']['code'], '失敗？')
+    print(self.data['module_new1']['file_new2']['code'], '成功？')
+    print(self.data['module_new1']['file_new3']['code'], '失敗？')
 
   def createParamTree(self, post):
     result = {}
@@ -57,7 +62,7 @@ class ArticleEditPagePostParam():
         result[separated[0]][separated[1]] = {}
         result[separated[0]][separated[1]][value_name] = value
 
-    print(result)
+    print(result, 'これがParamTree')
     # print(result['module1'])
     # print(result['module1']['file1'])
     # print(result['module1']['file1']['name'])

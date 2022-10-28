@@ -27,33 +27,6 @@
 <!-- bootstrap js -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 <script>
-  const LANGUAGES = ['python', 'Python', 'php', 'PHP', 'ruby', 'Ruby', 'javascript', 'css', 'html'];
-  const CSRF_TOKEN = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-
-  const getTextAreaLineCount = function(value) {
-    return value.split(/\r*\n/).length;
-  }
-
-  const getActiveFileTab = function() {
-    return document.querySelector('.tab-pane.code.show.active');
-  }
-
-  const highLightLine = function(value) {
-    $('.line-highlight').css('top', `calc(23.625px * ${getTextAreaLineCount(value) - 1})`);
-  }
-
-  const sendAjaxRequest = function(url, method, data, success, failed) {
-    $.ajax(url, {
-      type: method,
-      data: data,
-      dataType: 'xml'
-    }).done(function(result) {
-      success()
-    }).fail(function(result) {
-      failed()
-    })
-  }
-
   const editors = document.querySelectorAll('textarea.editor-code');
   const code_outputs = document.querySelectorAll('code.code-output');
   for (let i = 0; i < editors.length; i++) {
@@ -102,54 +75,87 @@
 
   const file_add_button = document.getElementById('file-add-button');
   file_add_button.addEventListener('click', function() {
-    const file_add = document.getElementsByClassName('file-add')[0];
-    const li = document.createElement('li')
-    li.className = 'nav-item';
-    li.setAttribute('role', 'presentation');
-    const button = document.createElement('button');
-    button.className = 'nav-link';
-    button.id = 'newfile-tab';
-    button.setAttribute('data-bs-toggle', 'tab');
-    button.setAttribute('data-bs-target', '#newfile');
-    button.setAttribute('type', 'button');
-    button.setAttribute('role', 'tab');
-    button.setAttribute('aria-controls', 'newfile');
-    button.setAttribute('aria-selected', 'false');
-    const input = document.createElement('input');
-    input.className = 'file-name-form';
-    input.setAttribute('type', 'text');
-    input.setAttribute('name', 'module1file4-name');
-    input.setAttribute('value', 'ファイルN');
-    const span = document.createElement('span');
-    span.innerHTML = '×'
-    button.appendChild(input);
-    button.appendChild(span);
-    li.appendChild(button);
-    const new_nav_item = `
-      <li class="nav-item" role="presentation">
-        <button
-          class="nav-link"
-          id="newfile-tab"
-          data-bs-toggle="tab"
-          data-bs-target="#newfile"
-          type="button"
-          role="tab"
-          aria-controls="newfile"
-          aria-selected="false"
-        >
-          <input class="file-name-form" type="text" name="module1file4-name" value="ファイルN">
+    const active_module_id = $('.module-box.show').attr('id');
+    const count_new_file = $('ul.nav.nav-tabs').children('li.nav-item.new').length;
+    const new_file_nav_item = `<li class="nav-item ${active_module_id} new" role="presentation">
+          <button
+            class="nav-link new"
+            id="file_new${count_new_file}-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#file_new${count_new_file}"
+            type="button"
+            role="tab"
+            aria-controls="file_new${count_new_file}"
+            aria-selected="true"
+          >
+          <input class="file-name-form" type="text" name="file_new${count_new_file}-name" value="" placeholder="ファイル名">
           <span>×</span>
-        </button>
-      </li>`;
-    $('.tab-content').append(`<div
-        class="tab-pane fade"
-        id="newfile"
+          </button>
+        </li>`;
+    $(file_add_button).parent('.file-add').before(new_file_nav_item);
+
+    const new_tab_pane = `<div
+        class="${active_module_id} file_new${count_new_file} tab-pane fade code"
+        id="file_new${count_new_file}"
         role="tabpanel"
-        aria-labelledby="newfile-tab"
-      >
-      {% include '../components/editor.html' %}
-      </div>`);
-    file_add.before(li);
+        aria-labelledby="file_new${count_new_file}-tab"
+        >
+          <div class="editor-container">
+            <div class="editor-lines"></div>
+            <div class="editor-main editor-code">
+              <textarea class="editor editor-code editor-codefile_new${count_new_file}" cols="30" rows="30" name="${active_module_id}file_new${count_new_file}-code"></textarea>
+              <pre><code class="python code-output code-outputfile_new${count_new_file}"></code></pre>
+            </div>
+            <div class="line-highlight"></div>
+          </div>
+        </div>`;
+    $('.tab-content.files').append(new_tab_pane);
+
+    // hljsを適用する処理
+    const created_file = $(`.tab-pane.code.file_new${count_new_file}`);
+    const created_editor = created_file.find('textarea.editor-code')[0];
+    const created_code_output = created_file.find('code.code-output')[0];
+
+    created_editor.addEventListener('input', function() {
+      created_code_output.textContent = this.value;
+      hljs.initHighlightingOnLoad();
+
+      const parent = this;
+      const lines = function() { return parent.value.split(/\r*\n/); }
+      const lineCount = (function() { return lines().length; })()
+      console.log(lineCount);
+
+      const activeFileTab = document.querySelector('.tab-pane.code.show.active');
+      const activeEditorLines = $(activeFileTab).find('.editor-container .editor-lines')[0];
+      let elements = ''
+      for (let i = 1; i <= lineCount; i++) {
+        elements += `<div class="line"><span>${i}</span></div>`;
+      }
+      activeEditorLines.innerHTML = elements;
+
+      const line_highlight = $('.line-highlight');
+      line_highlight.css('top', `calc(23.625px * ${lineCount - 1})`);
+    });
+
+    // focusイベントでも発火させないと、行数が表示されない
+    created_editor.addEventListener('focus', function() {
+      const parent = this;
+      const lines = function() { return parent.value.split(/\r*\n/); }
+      const lineCount = (function() { return lines().length; })()
+      console.log(lineCount);
+
+      const activeFileTab = document.querySelector('.tab-pane.code.show.active');
+      const activeEditorLines = $(activeFileTab).find('.editor-container .editor-lines')[0];
+      let elements = ''
+      for (let i = 1; i <= lineCount; i++) {
+        elements += `<div class="line"><span>${i}</span></div>`;
+      }
+      activeEditorLines.innerHTML = elements;
+
+      const line_highlight = $('.line-highlight');
+      line_highlight.css('top', `calc(23.625px * ${lineCount - 1})`);
+    });
+
   });
 
   execute.addEventListener('click', function() {
@@ -201,7 +207,7 @@
     const new_module_box = `<div id="${module_id}" class="${module_id} module-box new">
           <div class="module-name-box">
             <div class="${module_id} module-name">
-              <input id="${module_id}-name-form" type="text" class="${module_id} module-name-form" name="${module_id}-name" value="module">
+              <input id="${module_id}-name-form" type="text" class="${module_id} module-name-form" name="${module_id}-name" value="" placeholder="モジュール名">
             </div>
             <div class="module-name-edit">
               <label for="${module_id}-name-form">
@@ -210,11 +216,12 @@
             </div>
           </div>
         </div>`;
-    $('.module-box').last().after(new_module_box);
+    const module_add_button = $('.module-add-button-box');
+    module_add_button.before(new_module_box)
 
     // 追加したモジュールにファイルタブを用意する処理
     const count_new_file = $('ul.nav.nav-tabs').children('li.nav-item.new').length;
-    const new_file_nav_item = `<li class="nav-item ${module_id} none" role="presentation">
+    const new_file_nav_item = `<li class="nav-item ${module_id} new none" role="presentation">
             <button
               class="nav-link new"
               id="file_new${count_new_file}-tab"
@@ -225,7 +232,7 @@
               aria-controls="file_new${count_new_file}"
               aria-selected="true"
             >
-            <input class="file-name-form" type="text" name="file_new${count_new_file}-name" value="ファイル">
+            <input class="file-name-form" type="text" name="file_new${count_new_file}-name" value="" placeholder="ファイル名">
             <span>×</span>
             </button>
           </li>`;
@@ -234,7 +241,7 @@
 
     // 追加したファイルタブに対応するコンテンツを追加する処理
     const new_tab_pane = `<div
-      class="file_new${count_new_file} tab-pane fade code"
+      class="${module_id} file_new${count_new_file} tab-pane fade code"
       id="file_new${count_new_file}"
       role="tabpanel"
       aria-labelledby="file_new${count_new_file}-tab"
@@ -262,7 +269,6 @@
 
       $(active_nav_items[0]).find('button.nav-link').addClass('active');
       const non_active_nav_items = $('.nav-item').not(`.${module_id}`).not('#input-nav-item').not('#output-nav-item');
-      console.log(non_active_nav_items)
       for (let i = 0; i < non_active_nav_items.length; i++) {
         $(non_active_nav_items[i]).addClass('none');
         $(non_active_nav_items[i]).find('button.nav-link.active').not('#input-tab').not('#output-tab').removeClass('active');
@@ -275,7 +281,8 @@
       for (let i = 0; i < visible_tab_contents.length; i++) {
         $(visible_tab_contents[i]).removeClass('none');
       }
-      const non_visible_tab_contents = $('.tab-pane.code').not(`.file_new${count_new_file}`);
+      // const non_visible_tab_contents = $('.tab-pane.code').not(`.file_new${count_new_file}`); # モジュールIDでは？
+      const non_visible_tab_contents = $('.tab-pane.code').not(`.${module_id}`);
       for (let i = 0; i < non_visible_tab_contents.length; i++) {
         $(non_visible_tab_contents[i]).addClass('none');
       }
@@ -415,16 +422,20 @@
   for (let i = 0; i < modules.length; i++) {
     modules[i].addEventListener('click', function() {
       const clicked_module_id = $(this).parent('.module-box').attr('id');
+      console.log(clicked_module_id, 'あああいい')
       // 違うモジュールのファイルタブの停止
       const active_nav_items = $(`.nav-item.${clicked_module_id}`).not('#input-tab').not('#output-tab');
+      console.log(active_nav_items, 'えええいい')
       for (let i = 0; i < active_nav_items.length; i++) {
         $(active_nav_items[i]).removeClass('none');
         $(active_nav_items[i]).find('button.nav-link.active').removeClass('active');
         //複数タブactiveになっている可能性があるから、すべて非activeにしたあとactiveにする
       }
       $(this).parent('.module-box').addClass('show');
+      console.log($(this).parent('.module-box'), 'ここここ')
 
       $(active_nav_items[0]).find('button.nav-link').addClass('active');
+      console.log($(active_nav_items[0]).find('button.nav-link'), 'here')
       const non_active_nav_items = $('.nav-item').not(`.${clicked_module_id}`).not('#input-nav-item').not('#output-nav-item');
       console.log(non_active_nav_items)
       for (let i = 0; i < non_active_nav_items.length; i++) {
@@ -435,6 +446,7 @@
 
       $('.tab-pane.code.active.show').removeClass('active show');
       const visible_tab_contents = $(`.tab-pane.code.${clicked_module_id}`);
+      console.log(visible_tab_contents, 'あいうえお')
       $(visible_tab_contents[0]).addClass('active show');
       for (let i = 0; i < visible_tab_contents.length; i++) {
         $(visible_tab_contents[i]).removeClass('none');
@@ -446,6 +458,18 @@
     })
   }
 
+</script>
+<script src="{% static 'js/article_create.js' %}"></script>
+<script>
+  console.log('あああ');
+  const module = new Module({name : 'モジュール'});
+  console.log(module);
+
+  // console.log(module.getActiveModuleId());
+  // console.log(module.getNewModuleBoxCount());
+  // console.log(module.getNewModuleId());
+  // console.log(module.createNewModule());
+  console.log(module.addClickEventActivateModule());
 </script>
 {% endblock %}
 
@@ -468,21 +492,37 @@
         <span><i class="fa-solid fa-chevron-up module-toggle open"></i></span>
       </div>
       <div class="box">
-        <!-- モジュールの繰り返し -->
-        {% for key, value in modules.items %}
-        <div id="module{{ value.module.id }}" class="module{{ value.module.id }} module-box {% if key is 0 %}show{% endif %}">
-          <div class="module-name-box">
-            <div class="module{{ value.module.id }} module-name">
-              <input id="module{{ value.module.id }}-name-form" type="text" class="module{{ value.module.id }} module-name-form" name="module{{ value.module.id }}-name" value="{{ value.module.name }}">
-            </div>
-            <div class="module-name-edit">
-              <label for="module{{ value.module.id }}-name-form">
-                <span><i class="fa-solid fa-pen"></i></span>
-              </label>
+        <!-- モジュールがなかったら新規モジュールを初期セット -->
+        {% if modules == None %}
+          <div id="module_new0" class="module_new0 module-box new show">
+            <div class="module-name-box">
+              <div class="module_new0 module-name">
+                <input id="module_new0-name-form" type="text" class="module_new0 module-name-form" name="module_new0-name" value="" placeholder="モジュール名">
+              </div>
+              <div class="module-name-edit">
+                <label for="module_new0-name-form">
+                  <span><i class="fa-solid fa-pen"></i></span>
+                </label>
+              </div>
             </div>
           </div>
-        </div>
-        {% endfor %}
+        {% else %}
+        <!-- モジュールがあったら繰り返し -->
+          {% for key, value in modules.items %}
+            <div id="module{{ value.module.id }}" class="module{{ value.module.id }} module-box {% if key is 0 %}show{% endif %}">
+              <div class="module-name-box">
+                <div class="module{{ value.module.id }} module-name">
+                  <input id="module{{ value.module.id }}-name-form" type="text" class="module{{ value.module.id }} module-name-form" name="module{{ value.module.id }}-name" value="{{ value.module.name }}">
+                </div>
+                <div class="module-name-edit">
+                  <label for="module{{ value.module.id }}-name-form">
+                    <span><i class="fa-solid fa-pen"></i></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
         <div class="module-add-button-box">
           <span class="module-add-button">＋</span>
         </div>
@@ -496,25 +536,43 @@
     <ul class="nav nav-tabs" role="tablist">
       {% include '../components/dropdownmenu.html' %}
 
-      {% for m_index, module in modules.items %}
-        {% for f_index, file in module.files.items %}
-          <li class="nav-item module{{ module.module.id }} {% if m_index is not 0 %}none{% endif %}" role="presentation">
-            <button
-              class="nav-link {% if f_index is 0 %}active{% endif %}"
-              id="file{{ file.id }}-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#file{{ file.id }}"
-              type="button"
-              role="tab"
-              aria-controls="file{{ file.id }}"
-              aria-selected="true"
-            >
-            <input class="file-name-form" type="text" name="module{{ module.module.id }}file{{ file.id }}-name" value="{{ file.file_tag_name }}">
-            <span>×</span>
-            </button>
-          </li>
+      {% if modules == None %}
+        <li class="nav-item module_new0 new" role="presentation">
+          <button
+            class="nav-link new active"
+            id="file_new0-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#file_new0"
+            type="button"
+            role="tab"
+            aria-controls="file_new0"
+            aria-selected="true"
+          >
+          <input class="file-name-form" type="text" name="file_new0-name" value="" placeholder="ファイル名">
+          <span>×</span>
+          </button>
+        </li>
+      {% else %}
+        {% for m_index, module in modules.items %}
+          {% for f_index, file in module.files.items %}
+            <li class="nav-item module{{ module.module.id }} {% if m_index is not 0 %}none{% endif %}" role="presentation">
+              <button
+                class="nav-link {% if f_index is 0 %}active{% endif %}"
+                id="file{{ file.id }}-tab"
+                data-bs-toggle="tab"
+                data-bs-target="#file{{ file.id }}"
+                type="button"
+                role="tab"
+                aria-controls="file{{ file.id }}"
+                aria-selected="true"
+              >
+              <input class="file-name-form" type="text" name="module{{ module.module.id }}file{{ file.id }}-name" value="{{ file.file_tag_name }}">
+              <span>×</span>
+              </button>
+            </li>
+          {% endfor %}
         {% endfor %}
-      {% endfor %}
+      {% endif %}
 
       <li class="file-add">
         <button type="button" id="file-add-button">＋</button>
@@ -523,18 +581,36 @@
     </ul>
 
     <div class="tab-content files">
-      {% for m_index, module in modules.items %}
-        {% for f_index, file in module.files.items %}
-          <div
-            class="module{{ module.module.id }} tab-pane fade code {% if f_index is 0 and m_index is 0 %}show active{% endif %}"
-            id="file{{ file.id }}"
-            role="tabpanel"
-            aria-labelledby="file{{ file.id }}-tab"
-          >
-          {% include '../components/editor.html' %}
+      {% if modules == None %}
+        <div
+        class="module_new0 file_new0 tab-pane fade code active show"
+        id="file_new0"
+        role="tabpanel"
+        aria-labelledby="file_new0-tab"
+        >
+          <div class="editor-container">
+            <div class="editor-lines"></div>
+            <div class="editor-main editor-code">
+              <textarea class="editor editor-code editor-codefile_new0" cols="30" rows="30" name="module_new0file_new0-code"></textarea>
+              <pre><code class="python code-output code-outputfile_new0"></code></pre>
+            </div>
+            <div class="line-highlight"></div>
           </div>
+        </div>
+      {% else %}
+        {% for m_index, module in modules.items %}
+          {% for f_index, file in module.files.items %}
+            <div
+              class="module{{ module.module.id }} file{{ file.id }} tab-pane fade code {% if f_index is 0 and m_index is 0 %}show active{% endif %}"
+              id="file{{ file.id }}"
+              role="tabpanel"
+              aria-labelledby="file{{ file.id }}-tab"
+            >
+            {% include '../components/editor.html' %}
+            </div>
+          {% endfor %}
         {% endfor %}
-      {% endfor %}
+      {% endif %}
     </div>
 
     {% include '../components/tabs.html' %}
