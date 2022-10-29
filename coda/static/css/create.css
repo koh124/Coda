@@ -438,8 +438,11 @@ article textarea.article-body-form {
 .article-body h3 {
   background: #D0D1D1;
   font-size: 16px;
-  padding: 6px 9px;
-  width: calc(2em + 18px);
+  /* padding: 6px 9px; */
+  /* width: calc(2em + 18px); */
+  padding: 9px 18px;
+  width: calc(2em + 36px);
+  transform: translateY(2px);
 }
 
 article .article-body .article-body-box {
