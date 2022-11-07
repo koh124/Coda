@@ -297,6 +297,7 @@ ul.nav.nav-tabs {
   margin-bottom: 12px;
   position: relative;
   height: 500px;
+  /* overflow: scroll; */
 }
 
 .editor-container.output {
@@ -314,6 +315,7 @@ ul.nav.nav-tabs {
   /* margin-right: 30px; */
   background: rgba(0,0,0,0.15);
   width: 30px;
+  /* overflow: scroll; */
 }
 
 .editor-lines .line {
@@ -333,8 +335,10 @@ ul.nav.nav-tabs {
 
 .editor-main textarea.editor {
   color: transparent;
+  /* color: blue; */
   caret-color: black;
-  font-size: 15.75px;
+  /* font-size: 15.75px; */
+  font-size: 1em !important;
   font-family: SFMono-Regular, Menlo, Monaco;
   line-height: 23.625px;
   width: calc(100% - 30px);
@@ -390,7 +394,8 @@ pre {
 
 code.code-output {
   /* background: orange !important; */
-  font-size: 15.75px;
+  /* font-size: 15.75px !important; */
+  font-size: 1em !important;
   width: calc(100% - 30px);
   height: 100%;
   border: 0 !important;

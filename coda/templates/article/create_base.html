@@ -40,6 +40,35 @@
     highlight.addFocusEventHighLight();
   }
 
+  // formのsubmitイベントの前に各ファイルのLanguage情報をpostに追加する
+  const form = $('.form')[0].onsubmit = function() {
+    const tab_contents = $('.tab-pane').not('#input').not('#output');
+    for (let i = 0; i < tab_contents.length; i++) {
+      const file_id = $(tab_contents[i]).attr('id');
+
+      // module_idを取得する
+      let module_id;
+      const classes = $(`#${file_id}`)[0].classList;
+      for (let i = 0; i < classes.length; i++) {
+        if(classes[i].indexOf('module') !== -1) module_id = classes[i];
+        break;
+      }
+
+      // fileのlanguageを取得し、file_idとmodule_idからlanguage情報を載せたinputタグをフォームに追加する
+      const class_list = $(tab_contents[i]).find('code')[0].classList;
+      for (let j = 0; j < class_list.length; j++) {
+        if (LANGUAGES.includes(class_list[j].replace('language-', '')) && !LANGUAGES.includes(class_list[j])) {
+          const array = class_list[j].split('-');
+          const input_hidden = `<input name="${module_id}${file_id}-language" value="${array[1]}" type="hidden">`;
+          console.log(input_hidden);
+          $(tab_contents[i]).append(input_hidden);
+          break;
+        }
+      }
+    }
+    // return false;
+  };
+
   const execute = document.getElementsByClassName('execute')[0].firstElementChild;
   console.log(document.getElementsByName('csrfmiddlewaretoken')[0].value);
 
@@ -84,7 +113,7 @@
     }
 
     console.log('sended code = ' + code);
-    const post_param = 'language=' + language + '&' + code_name + '=' + encodeURIComponent(code) + '&' + 'csrfmiddlewaretoken=' + csrftoken;
+    const post_param = 'language=' + language + '&' + code_name + '=' + encodeURIComponent(code) + '&' + 'csrfmiddlewaretoken=' + csrftoken + '&' + 'execute=true';
     xhr.send(post_param);
     console.log(language, '言語');
 
@@ -188,21 +217,23 @@
     const dropdownitem = dropdownitems[i];
     dropdownitem.addEventListener('click', function() {
       const language = this.value;
-      dropdowntoggle.setAttribute('value', language);
+      dropdowntoggle.setAttribute('value', language); // ここで言語のvalueを設定してる
       const activeFileTab = document.querySelector('.tab-pane.code.show.active');
       const activeCode = $(activeFileTab).find('code.code-output')[0];
+      //どうやらcodeタグのclassにpython, language-pythonのように言語の識別子がついているらしい
       {
         const class_list = activeCode.classList;
         class_str = '';
+        //ここは言語のclassを取り除いてる
         for (let i = 0; i < class_list.length; i++) {
           if (LANGUAGES.includes(class_list[i]) || LANGUAGES.includes(class_list[i].replace('language-', ''))) {
             continue
           }
           class_str = class_str + class_list[i] + ' ';
         }
+        // ここで新しい言語クラスをくっつけてる
         class_str += (language + ' ' + 'language-' + language);
         activeCode.setAttribute('class', class_str);
-        console.log(class_str, 'phphphphpp');
       }
     });
   }
@@ -227,7 +258,7 @@
 <header></header>
 
 <main id="main" class="container">
-  <form action="http://localhost:8000/create/" method="POST">
+  <form class="form" action="http://localhost:8000/create/" method="POST">
     <div class="article-title-box">
       <input type="text" class="article-title-form" name="article-title" value="記事のタイトル">
     </div>
@@ -298,7 +329,7 @@
             aria-controls="file_new0"
             aria-selected="true"
           >
-          <input class="file-name-form" type="text" name="file_new0-name" value="" placeholder="ファイル名">
+          <input class="file-name-form" type="text" name="module_new0file_new0-name" value="" placeholder="ファイル名">
           <span>×</span>
           </button>
         </li>
@@ -342,7 +373,7 @@
             <div class="editor-lines"></div>
             <div class="editor-main editor-code">
               <textarea class="editor editor-code editor-codefile_new0" cols="30" rows="30" name="module_new0file_new0-code"></textarea>
-              <pre><code class="python code-output code-outputfile_new0"></code></pre>
+              <pre><code class="python code-output code-outputfile_new0 language-python"></code></pre>
             </div>
             <div class="line-highlight"></div>
           </div>

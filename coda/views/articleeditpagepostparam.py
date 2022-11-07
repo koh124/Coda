@@ -1,6 +1,5 @@
 import re
 
-
 """
 POSTパラメータ命名規則
 ①articleは常にひとつ
@@ -18,25 +17,6 @@ class ArticleEditPagePostParam():
 
   def __init__(self, param):
     self.data = self.createParamTree(param)
-    self.article = []
-    self.modules = []
-    self.files = []
-    for model_name in self.data:
-      if model_name.startswith('article'):
-        self.article = self.data[model_name]
-      elif model_name.startswith('module'):
-        self.modules.append(self.data[model_name])
-        self.files = ([i for i in self.data[model_name]])
-    print('ここからコンストラクタ')
-    print(self.data)
-    print(self.article, self.article['title'], self.article['body'])
-    print(self.modules, self.modules[0])
-    print(self.files, self.files[0])
-
-    print(self.data['module_new0']['file_new0']['code'], '成功？')
-    print(self.data['module_new0']['file_new1']['code'], '失敗？')
-    print(self.data['module_new1']['file_new2']['code'], '成功？')
-    print(self.data['module_new1']['file_new3']['code'], '失敗？')
 
   def createParamTree(self, post):
     result = {}
@@ -48,53 +28,60 @@ class ArticleEditPagePostParam():
       splitted = key.split('-')
       model_name = splitted[0]
       value_name = splitted[1]
-      separated = re.split('(.*?[0-9])', model_name)
-      separated = [i for i in separated if not i is ''] # ''をリスト内から削除
+      separated = re.split('(.*?[0-9])', model_name) # module0file0の繋がりをsplitする
+      separated = [i for i in separated if i != ''] # ''をリスト内から削除
 
       print(model_name, value_name, value, separated)
 
-      if not separated[0] in result:
+      # パターン
+      # module.article.title
+      # module.file_new0.language, name, code
+      # module.file_new1.language, name, code
+      # 初期化作業
+      # module = {}
+      # module.file_new0 = {}
+      # module.file_new1 = {}
+      # つまりモジュールに1回、fileごとに1回初期化が必要
+
+      # separatedが['article'], ['module_new0', 'file_new0'], ['module_new0', 'file_new1']のどちらでも
+      # result = {'module_new0': {}} となる初期化は必要になる（モジュールの初期化）
+      if not(separated[0] in result):
         result[separated[0]] = {}
 
+      # separatedの要素数が1、つまりarticle
+      # ↓これを作る
+      # result = {
+      #   'article': {
+      #     'title': value,
+      #     'body': value
+      #   }
+      # }
       if len(separated) == 1:
-        result[separated[0]][value_name] = value
+        result[separated[0]][value_name] = value # すでにキーがあるならそのままvalueを突っ込む
+
+      # separatedの要素数が2、つまりmodule0file0の場合
+      # ↓これをつくる
+      # result = {
+      #   'module_new0': {
+      #     'file_new0': {
+      #       'name': 'ファイル名',
+      #       'code': 'print()'
+      #     }
+      #   }
+      # }
+      # 課題 result.module_new.file_new1, result.module_new.file_new2 のケースがある
       elif len(separated) == 2:
-        result[separated[0]][separated[1]] = {}
+        if not(separated[1] in result[separated[0]]):
+          result[separated[0]][separated[1]] = {}
         result[separated[0]][separated[1]][value_name] = value
 
     print(result, 'これがParamTree')
-    # print(result['module1'])
-    # print(result['module1']['file1'])
-    # print(result['module1']['file1']['name'])
 
     return result
 
   # 草案
   def Toy(params):
-    result = {}
-    for key in dict(params):
-      separated = re.split('(?!\[|\])(.*?[0-9])', key) # module4, [][], file1, [][]に分割できる
-      separated = [i for i in separated if not i is ''] # ''をリスト内から削除
-
-      if len(separated) == 1:
-        result[separated[0]] = {}
-        result[separated[0]]['value'] = params.getlist(key)
-      elif len(separated) == 2:
-        if separated[1].startswith('file'):
-          result[separated[0]]['files'] = params.getlist(key)
-
-      print(separated, 'this is separated')
-    print(result, 'これで完成?')
-
-  def Toy1(separated):
-    # ["module4", "[][]"] これを ["module4[][]"] にする
-    array = []
-    for i in separated:
-      if not i.startswith('[]'):
-        array.append(i)
-      else:
-        array[-1] += i
-    print(array)
+      separated = re.split('(?!\[|\])(.*?[0-9])', params) # module4, [][], file1, [][]に分割できる
 
   def Toy2(params):
     """

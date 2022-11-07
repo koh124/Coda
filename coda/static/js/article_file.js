@@ -58,7 +58,7 @@ File.prototype.createElementNewFileNavItem = function() {
             aria-controls="file_new${new_file_count_in_module}"
             aria-selected="true"
           >
-          <input class="file-name-form" type="text" name="file_new${new_file_count_in_module}-name" value="" placeholder="ファイル名">
+          <input class="file-name-form" type="text" name="${module_id}file_new${new_file_count_in_module}-name" value="" placeholder="ファイル名">
           <span>×</span>
           </button>
           </li>`;
@@ -77,7 +77,7 @@ File.prototype.createElementNewFileTabContent = function() {
       <div class="editor-lines"></div>
       <div class="editor-main editor-code">
         <textarea class="editor editor-code editor-codefile_new${new_file_count_in_module}" cols="30" rows="30" name="${module_id}file_new${new_file_count_in_module}-code"></textarea>
-        <pre><code class="python code-output code-outputfile_new${new_file_count_in_module}"></code></pre>
+        <pre><code class="python code-output code-outputfile_new${new_file_count_in_module} language-python"></code></pre>
       </div>
       <div class="line-highlight"></div>
     </div>
