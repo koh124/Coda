@@ -18,6 +18,8 @@ def create(request):
   post = request.POST
   print(post, '生のpost')
 
+  # 実行するボタンでコード実行したときのみ
+  # パラメータにはexecuteを含ませている
   if 'execute' in post:
     print(post)
     File(
