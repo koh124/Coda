@@ -337,8 +337,8 @@ ul.nav.nav-tabs {
   color: transparent;
   /* color: blue; */
   caret-color: black;
-  /* font-size: 15.75px; */
-  font-size: 1em !important;
+  font-size: 15.75px;
+  /* font-size: 1em !important; */
   font-family: SFMono-Regular, Menlo, Monaco;
   line-height: 23.625px;
   width: calc(100% - 30px);
@@ -394,8 +394,8 @@ pre {
 
 code.code-output {
   /* background: orange !important; */
-  /* font-size: 15.75px !important; */
-  font-size: 1em !important;
+  font-size: 15.75px !important;
+  /* font-size: 1em !important; */
   width: calc(100% - 30px);
   height: 100%;
   border: 0 !important;

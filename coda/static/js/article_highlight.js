@@ -2,6 +2,13 @@ function HighLight(file_id) {
   this.file_id = file_id;
 }
 
+HighLight.prototype.changeCodeValue = function() {
+  const tab_content = $(`.tab-pane.code.${this.file_id}`);
+  const editor = tab_content.find('textarea.editor-code')[0];
+  const code = tab_content.find('code.code-output')[0];
+  code.textContent = editor.value;
+}
+
 HighLight.prototype.addInputEventHighLight = function() {
   const tab_content = $(`.tab-pane.code.${this.file_id}`);
   const editor = tab_content.find('textarea.editor-code')[0];
@@ -48,5 +55,10 @@ HighLight.prototype.addFocusEventHighLight = function() {
 
     const line_highlight = $('.line-highlight');
     line_highlight.css('top', `calc(23.625px * ${lineCount - 1})`);
+
+    console.log($('code.code-output')[0]);
+    console.log($('code.code-output')[1]);
+    console.log($('code.code-output')[2]);
+    console.log($('code.code-output')[3]);
   });
 }

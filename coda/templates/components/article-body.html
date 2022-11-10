@@ -2,11 +2,15 @@
   <div class="article-body">
     <h3>本文</h3>
     <div class="article-body-box">
-      <textarea class="article-body-form" name="article-body" id="" cols="30" rows="10"></textarea>
+      <textarea class="article-body-form" name="article-body" id="" cols="30" rows="10">{% if article != None %}{{ article.body }}{% endif %}</textarea>
     </div>
     <div class="article-submit">
       <div>
+        {% if article == None %}
         <button type="submit" class="btn btn-danger">投稿</button>
+        {% else %}
+        <button type="submit" class="btn btn-primary">更新</button>
+        {% endif %}
       </div>
       <div>
         <button type="submit" class="btn btn-secondary">下書き</button>

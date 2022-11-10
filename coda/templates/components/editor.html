@@ -2,8 +2,8 @@
   <div class="editor-lines">
   </div>
   <div class="editor-main editor-code">
-    <textarea class="editor editor-code editor-code{{ f_index }}" cols="30" rows="30" name="module{{ module.module.id }}file{{ file.id }}-code"></textarea>
-    <pre><code class="python code-output code-output{{ f_index }}"></code></pre>
+    <textarea class="editor editor-code editor-code{{ f_index }}" cols="30" rows="30" name="module{{ module.module.id }}file{{ file.id }}-code">{{ file.code }}</textarea>
+    <pre><code class="{% if file != None %}{{ file.language.name }}{{ ' language-' }}{{ file.language.name }}{% else %}{{ 'python language-python' }}{% endif %} code-output code-output{{ f_index }}"></code></pre>
   </div>
   <div class="line-highlight"></div>
 </div>

@@ -14,7 +14,12 @@ import os
 select coda_module.id as module_id, coda_article.id as article_id, coda_file.id as file_id  from coda_module inner join coda_article_module_dependencies on coda_module.id = coda_article_module_dependencies.module_id inner join coda_article on coda_article.id = coda_article_module_dependencies.article_id inner join coda_module_file_dependencies on coda_module_file_dependencies.module_id = coda_module.id inner join coda_file on coda_file.id = coda_module_file_dependencies.file_id;
 """
 
-def create(request):
+def read(request):
+  if len(request.GET):
+    print(request.GET)
+    a_id = request.GET['a_id']
+    return render(request, 'article/create_base.html', getArticlePageByArticleId(a_id))
+
   post = request.POST
   print(post, '生のpost')
 
@@ -62,6 +67,11 @@ def SaveParamTree(param_tree):
   article = param_tree['article']
   title = article['title']
   body = article['body']
+  a_id = article['id']
+
+  # article_idがpostで送られてきたら、updateとみなす
+  if a_id != None:
+    Article.objects.get(a_id)
 
   Article(
     title = title,
@@ -145,9 +155,8 @@ def SaveParamTree(param_tree):
   return
 
 
-def getArticlePageByArticleId():
+def getArticlePageByArticleId(article_id):
   user_id = 1
-  article_id = 11
 
   # ※article_idからすべてのデータを取得する
   # フォーマット
@@ -165,7 +174,8 @@ def getArticlePageByArticleId():
   # }
   # テンプレートではmodules[0].module.name, modules[0].files[0] などでアクセス
   result = {
-    'modules': {}
+    'modules': {},
+    'article': Article.objects.get(id=article_id),
   }
   # articleに対してhas manyであるモジュールすべて
   article_dependency_modules = Article_Module_Dependencies.objects.filter(article=article_id).all()

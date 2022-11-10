@@ -36,12 +36,14 @@
   for (let i = 0; i < tab_contents.length; i++) {
     const file_id = $(tab_contents[i]).attr('id');
     const highlight = new HighLight(file_id);
+    highlight.changeCodeValue();
     highlight.addInputEventHighLight();
     highlight.addFocusEventHighLight();
   }
 
   // formのsubmitイベントの前に各ファイルのLanguage情報をpostに追加する
   const form = $('.form')[0].onsubmit = function() {
+
     const tab_contents = $('.tab-pane').not('#input').not('#output');
     for (let i = 0; i < tab_contents.length; i++) {
       const file_id = $(tab_contents[i]).attr('id');
@@ -219,6 +221,7 @@
       const language = this.value;
       dropdowntoggle.setAttribute('value', language); // ここで言語のvalueを設定してる
       const activeFileTab = document.querySelector('.tab-pane.code.show.active');
+
       const activeCode = $(activeFileTab).find('code.code-output')[0];
       //どうやらcodeタグのclassにpython, language-pythonのように言語の識別子がついているらしい
       {
@@ -235,6 +238,10 @@
         class_str += (language + ' ' + 'language-' + language);
         activeCode.setAttribute('class', class_str);
       }
+      // 言語の変更によりハイライトの仕様が変わる場合がある
+      const file_id = activeFileTab.id;
+      const highlight = new HighLight(file_id);
+      hljs.initHighlightingOnLoad();
     });
   }
 
@@ -248,6 +255,14 @@
     });
   }
 
+  // 新規投稿か編集かを分けるフラグをつくる
+  let url = new URL(window.location.href);
+  let params = url.searchParams;
+  if (params.get('a_id') !== null) {
+    window.a_id = params.get('a_id');
+  }
+  console.log(window);
+
 </script>
 <script>
 
@@ -260,7 +275,8 @@
 <main id="main" class="container">
   <form class="form" action="http://localhost:8000/create/" method="POST">
     <div class="article-title-box">
-      <input type="text" class="article-title-form" name="article-title" value="記事のタイトル">
+      <input type="hidden" name="article-id" value="{% if article != None %}{{ article.id }}{% else %}{% endif %}">
+      <input type="text" class="article-title-form" name="article-title" value="{% if article != None %}{{ article.title }}{% endif %}" placeholder="記事のタイトル">
     </div>
 
     <div class="module-container">
