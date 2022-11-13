@@ -163,12 +163,21 @@ main.container#main {
   background: #E0E0E0;
   height: 100%;
 }
-.module-name-edit label {
-  padding: 3px 6px;
+.module-delete {
+  background: #dc3545;
 }
-.module-name-edit label span i {
+.module-name-edit label,
+.module-delete div {
+  padding: 3px 10px;
+}
+.module-name-edit label span i,
+.module-delete div span i {
   width: 100%;
   height: 100%;
+}
+
+.module-delete i {
+  color: rgba(255,255,255,0.9);
 }
 
 .module-add-button-box {
@@ -300,6 +309,10 @@ ul.nav.nav-tabs {
   /* overflow: scroll; */
 }
 
+.editor-container.input {
+  border: 2px solid rgba(0,0,0,0.15);
+}
+
 .editor-container.output {
   border: 2px solid rgba(0,0,0,0.15);
   /* border-left: 0; */
@@ -309,6 +322,7 @@ ul.nav.nav-tabs {
 .editor-container.input,
 .editor-container.output {
   height: 200px;
+  background: white;
 }
 
 .editor-lines {
@@ -368,8 +382,10 @@ ul.nav.nav-tabs {
 
 .editor-main.editor-input-tab textarea.editor {
   color: black;
-  background: white;
+  /* background: white; */
+  width: 100%;
   height: 100%;
+  transform: none;
 }
 
 .editor-main.editor-output-tab {
@@ -474,7 +490,8 @@ article .article-submit button {
   width: calc(3em + 2em);
 }
 
-article .article-submit div:first-child button {
+article .article-submit div:first-child button,
+article .article-submit div:nth-child(2) button {
   margin-right: 12px;
 }
 

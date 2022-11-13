@@ -28,8 +28,10 @@ class ArticleEditPagePostParam():
       splitted = key.split('-')
       model_name = splitted[0]
       value_name = splitted[1]
-      separated = re.split('(.*?[0-9])', model_name) # module0file0の繋がりをsplitする
+      separated = re.split('_', model_name) # module0file0の繋がりをsplitする
+      # separated = re.split('(.*?[0-9])', model_name) # module0file0の繋がりをsplitする
       separated = [i for i in separated if i != ''] # ''をリスト内から削除
+      print(separated, 'separatedはこれです')
 
       print(model_name, value_name, value, separated)
 

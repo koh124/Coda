@@ -20,12 +20,21 @@ Module.prototype.getCountOfNewModuleBox = function() {
 Module.prototype.getActiveModuleId = () => $('.module-box.show').attr('id');
 Module.prototype.getNewModuleBoxCount = () => $('.module-box.new').length;
 Module.prototype.getNewModuleId = function() {
-  return 'module_new' + String(this.getNewModuleBoxCount());
+  let num = this.getNewModuleBoxCount();
+  let module_id = 'modulenew' + String(num);
+  // newなモジュールidの重複があり続ける限り、idをプラス1する
+  while ($('.' + module_id).length) {
+    num++;
+    module_id = 'modulenew' + String(num);
+  }
+  console.log(module_id);
+  return module_id;
 }
 Module.prototype.createElementNewModule = function() {
   return `<div id="${this.id}" class="${this.id} module-box new">
             <div class="module-name-box">
               <div class="${this.id} module-name">
+                <input type="hidden" name="${this.id}-id" value="">
                 <input id="${this.id}-name-form" type="text" class="${this.id} module-name-form" name="${this.id}-name" value="" placeholder="モジュール名">
               </div>
               <div class="module-name-edit">
@@ -33,14 +42,21 @@ Module.prototype.createElementNewModule = function() {
                   <span><i class="fa-solid fa-pen"></i></span>
                 </label>
               </div>
+              <div class="module-delete ${this.id}">
+                <div>
+                  <span><i class="fa-solid fa-trash"></i></span>
+                </div>
+              </div>
             </div>
           </div>`;
 }
 Module.prototype.addClickEventActivateModule = function() {
   if (this.exists()) {
+    console.log('実行された？')
     const self = this;
     const module = $(`.module-box.${this.id}`).get()[0];
 
+    // モジュールをアクティベートするクリックイベントを付与
     module.addEventListener('click', function() {
       self.showModule();
       self.activateNavItems();
@@ -49,10 +65,16 @@ Module.prototype.addClickEventActivateModule = function() {
       self.disableTabContent();
       const activeTabContent = $(`.tab-pane.code.active.show`);
 
+      const first_file_id = $(`.tab-pane.code.${self.id}`).first().attr('id');
+      console.log(first_file_id, 'ファイルID')
+      const first_file = new File({'module_id' : self.id, 'id' : first_file_id})
+      first_file.setDropDownMenuLanguage();
+
       const highlight = new HighLight(activeTabContent.attr('id'));
       highlight.addInputEventHighLight();
       highlight.addFocusEventHighLight();
     });
+
   } else {
     throw new Error('モジュールが存在しません');
   }
@@ -71,6 +93,17 @@ Module.prototype.activateNavItems = function() {
     $(active_nav_items[i]).find('button.nav-link.active').removeClass('active');
   }
   $(active_nav_items[0]).find('button.nav-link').addClass('active');
+
+  // ドロップダウンメニューをアクティブなファイルの言語に合わせる処理
+  const file_id = $(active_nav_items[0]).find('button').attr('aria-controls');
+  const this_class_list = $(`.tab-pane#${file_id} .editor-container pre code`).get()[0].classList;
+
+  for (let i = 0; i < this_class_list.length; i++) {
+    if (LANGUAGES.includes(this_class_list[i]) || LANGUAGES.includes(this_class_list[i].replace('language-', ''))) {
+      $('#language-dropdownmenu-button').val(this_class_list[i].replace('language-', ''));
+    }
+  }
+
 }
 Module.prototype.disableNavItems = function() {
   /*
@@ -97,6 +130,55 @@ Module.prototype.disableTabContent = function() {
   for (let i = 0; i < non_visible_tab_contents.length; i++) {
     $(non_visible_tab_contents[i]).addClass('none');
   }
+}
+Module.prototype.addClickEventDeleteModule = function() {
+  const this_module = $(`.module-box.${this.id}`).find('.module-delete').get()[0];
+
+  $(this_module).on('click', function() {
+    // まずどのモジュールidを持ったモジュールか特定する
+    const classlist = this_module.classList;
+    let selector = '';
+    for (let i = 0; i < classlist.length; i++) selector += `.${classlist[i]}`;
+    console.log(selector);
+    const module = $(selector).parent('.module-name-box').parent('.module-box');
+    const module_id = module.attr('id');
+
+    // モジュールidに紐づくファイルを取得する
+    const file_nav_items = $(`li.nav-item.${module_id}`);
+    const file_tab_contents = $(`.tab-pane.code.${module_id}`);
+
+    // そのモジュールがshow状態であったかどうかのフラグを取得しておく
+    const has_show = module.hasClass('show');
+
+    // モジュールとファイルの削除処理を行う
+    file_nav_items.each(function() {
+      $(this).remove();
+    });
+    file_tab_contents.each(function() {
+      $(this).remove();
+    });
+    module.remove();
+
+    // 先程削除したモジュールがshowだった場合、
+    // 先頭のモジュールにshowを渡す
+    if (has_show) {
+      const first_module_box = $('.module-box').not(`#${module_id}`).first();
+      const first_module_id = first_module_box.attr('id');
+      const first_module = new Module({ 'id': first_module_id });
+
+      first_module.showModule();
+      first_module.activateNavItems();
+      first_module.disableNavItems();
+      first_module.activateTabContent();
+      first_module.disableTabContent();
+      const activeTabContent = $(`.tab-pane.code.active.show`);
+
+      const highlight = new HighLight(activeTabContent.attr('id'));
+      highlight.addInputEventHighLight();
+      highlight.addFocusEventHighLight();
+    }
+
+  });
 }
 
 // 流れ

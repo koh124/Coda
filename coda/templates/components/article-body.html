@@ -9,12 +9,18 @@
         {% if article == None %}
         <button type="submit" class="btn btn-danger">投稿</button>
         {% else %}
-        <button type="submit" class="btn btn-primary">更新</button>
+        <button type="submit" class="update btn btn-primary">更新</button>
         {% endif %}
       </div>
       <div>
         <button type="submit" class="btn btn-secondary">下書き</button>
       </div>
+      {% if article == None %}
+      {% else %}
+      <div>
+        <button type="button" class="delete btn btn-danger">削除</button>
+      </div>
+      {% endif %}
     </div>
   </div>
 </article>

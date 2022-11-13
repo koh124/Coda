@@ -61,7 +61,7 @@
       for (let j = 0; j < class_list.length; j++) {
         if (LANGUAGES.includes(class_list[j].replace('language-', '')) && !LANGUAGES.includes(class_list[j])) {
           const array = class_list[j].split('-');
-          const input_hidden = `<input name="${module_id}${file_id}-language" value="${array[1]}" type="hidden">`;
+          const input_hidden = `<input name="${module_id}_${file_id}-language" value="${array[1]}" type="hidden">`;
           console.log(input_hidden);
           $(tab_contents[i]).append(input_hidden);
           break;
@@ -70,6 +70,13 @@
     }
     // return false;
   };
+
+  const delete_btn = $('.delete');
+  delete_btn.on('click', function() {
+    const form = $('.form')[0];
+    form.setAttribute('action', 'http://localhost:8000/delete/')
+    $('.update').click();
+  });
 
   const execute = document.getElementsByClassName('execute')[0].firstElementChild;
   console.log(document.getElementsByName('csrfmiddlewaretoken')[0].value);
@@ -85,6 +92,19 @@
     const new_file_tab_content = file.createElementNewFileTabContent();
     $(file_add_button).parent('.file-add').before(new_file_nav_item);
     $('.tab-content.files').append(new_file_tab_content);
+
+    // 新しいファイルタブをクリックしたとき、ドロップダウンの言語を一致させる
+    const new_nav_item_entity = $(file_add_button).parent('.file-add').prev();
+    new_nav_item_entity.on('click', function() {
+      file.setDropDownMenuLanguage();
+      console.log(file, 'それともこれ？')
+      // ついでに他のファイルタブのactiveを取り除く処理もさせておく
+      $('.nav-item').not($(this)).not('#input-nav-item').not('#output-nav-item').each(function(index, element) {
+        // console.log($(element))
+        $(element).removeClass('active');
+        // console.log($(element).attr('class'))
+      })
+    });
 
     // hljsを適用する処理
     const highlight = new HighLight(file.id);
@@ -151,6 +171,22 @@
 
       // 追加したモジュールにクリックイベントを付与する処理
       module.addClickEventActivateModule();
+      module.addClickEventDeleteModule();
+
+      // 新規追加したモジュールの新規ファイルに、
+      // クリックしたら他のファイルのactiveをremoveする仕様をつける
+      const new_nav_item_entity = $('.file-add').prev();
+      console.log(new_nav_item_entity)
+      new_nav_item_entity.on('click', function() {
+        $('.nav-item').not($(this)).not('#input-nav-item').not('#output-nav-item').each(function(index, element) {
+          // console.log($(element))
+          $(element).removeClass('active');
+          // console.log($(element).attr('class'))
+        });
+        file.setDropDownMenuLanguage();
+        console.log('追加したよ')
+
+      });
     });
   }
   addClickEventToModuleAddButton();
@@ -247,12 +283,15 @@
 
   const modules = document.querySelectorAll('.module-name-box');
   for (let i = 0; i < modules.length; i++) {
-    modules[i].addEventListener('click', function() {
-      const clicked_module_id = $(this).parent('.module-box').attr('id');
+    const module_entity = modules[i];
+    const module_id = $(module_entity).parent('.module-box').attr('id');
+    const module = new Module({ 'id': module_id });
 
-      const module = new Module({ 'id': clicked_module_id });
-      module.addClickEventActivateModule();
-    });
+    module.addClickEventActivateModule();
+    // module_entity.addEventListener('click', function() {
+    // });
+    // 削除ボタンを押したときにモジュールを削除するクリックイベントも付与
+    module.addClickEventDeleteModule();
   }
 
   // 新規投稿か編集かを分けるフラグをつくる
@@ -262,6 +301,91 @@
     window.a_id = params.get('a_id');
   }
   console.log(window);
+
+  // ファイルタブをクリックしたとき、他のファイルタブのactiveを無効にする仕様を追加
+  const file_nav_items = $('.nav-item').not('#input-nav-item').not('#output-nav-item').each(function(index, navitem) {
+    navitem.addEventListener('click', function() {
+      $('.nav-item').not($(this)).not('#input-nav-item').not('#output-nav-item').each(function(index, element) {
+        $(element).find('button').removeClass('active');
+      });
+
+      const classlist = navitem.classList;
+      let moduleid;
+      for (let i = 0; i < classlist.length; i++) {
+        if (classlist[i].indexOf('module') !== -1) {
+          moduleid = classlist[i];
+          console.log(moduleid);
+          break;
+        }
+      }
+      const fileid = $(navitem).find('button').attr('aria-controls');
+      console.log(fileid);
+      const file = new File({'module_id' : moduleid, 'id' : fileid});
+      file.setDropDownMenuLanguage();
+
+
+      // // ファイルタブをクリックしたとき、ドロップダウンの言語も変更する
+      // const file_id = $(navitem).find('button').attr('aria-controls');
+      // const this_class_list = $(`.tab-pane#${file_id} .editor-container pre code`).get()[0].classList;
+
+      // for (let i = 0; i < this_class_list.length; i++) {
+      //   if (LANGUAGES.includes(this_class_list[i]) || LANGUAGES.includes(this_class_list[i].replace('language-', ''))) {
+      //     console.log(this_class_list[i], 'これ？')
+      //     $('#language-dropdownmenu-button').val(this_class_list[i].replace('language-', ''));
+      //   }
+      // }
+    });
+  });
+
+  // // モジュールの削除処理
+  // $('.module-delete').each(function(index, element) {
+  //   // モジュールクリックしたら
+  //   $(element).on('click', function() {
+  //     // まずどのモジュールidを持ったモジュールか特定する
+  //     const classlist = element.classList;
+  //     let selector = '';
+  //     for (let i = 0; i < classlist.length; i++) selector += `.${classlist[i]}`;
+  //     console.log(selector);
+  //     const module = $(selector).parent('.module-name-box').parent('.module-box');
+  //     const module_id = module.attr('id');
+
+  //     // モジュールidに紐づくファイルを取得する
+  //     const file_nav_items = $(`li.nav-item.${module_id}`);
+  //     const file_tab_contents = $(`.tab-pane.code.${module_id}`);
+
+  //     // そのモジュールがshow状態であったかどうかのフラグを取得しておく
+  //     const has_show = module.hasClass('show');
+
+  //     // モジュールとファイルの削除処理を行う
+  //     file_nav_items.each(function() {
+  //       $(this).remove();
+  //     });
+  //     file_tab_contents.each(function() {
+  //       $(this).remove();
+  //     });
+  //     module.remove();
+
+  //     // 先程削除したモジュールがshowだった場合、
+  //     // 先頭のモジュールにshowを渡す
+  //     if (has_show) {
+  //       const first_module_box = $('.module-box').not(`#${module_id}`).first();
+  //       const first_module_id = first_module_box.attr('id');
+  //       const first_module = new Module({ 'id': first_module_id });
+
+  //       first_module.showModule();
+  //       first_module.activateNavItems();
+  //       first_module.disableNavItems();
+  //       first_module.activateTabContent();
+  //       first_module.disableTabContent();
+  //       const activeTabContent = $(`.tab-pane.code.active.show`);
+
+  //       const highlight = new HighLight(activeTabContent.attr('id'));
+  //       highlight.addInputEventHighLight();
+  //       highlight.addFocusEventHighLight();
+  //     }
+
+  //   });
+  // });
 
 </script>
 <script>
@@ -291,15 +415,21 @@
       <div class="box">
         <!-- モジュールがなかったら新規モジュールを初期セット -->
         {% if modules == None %}
-          <div id="module_new0" class="module_new0 module-box new show">
+          <div id="modulenew0" class="modulenew0 module-box new show">
             <div class="module-name-box">
-              <div class="module_new0 module-name">
-                <input id="module_new0-name-form" type="text" class="module_new0 module-name-form" name="module_new0-name" value="" placeholder="モジュール名">
+              <div class="modulenew0 module-name">
+                <input type="hidden" name="modulenew0-id" value="">
+                <input id="modulenew0-name-form" type="text" class="modulenew0 module-name-form" name="modulenew0-name" value="" placeholder="モジュール名">
               </div>
               <div class="module-name-edit">
-                <label for="module_new0-name-form">
+                <label for="modulenew0-name-form">
                   <span><i class="fa-solid fa-pen"></i></span>
                 </label>
+              </div>
+              <div class="module-delete modulenew0">
+                <div>
+                  <span><i class="fa-solid fa-trash"></i></span>
+                </div>
               </div>
             </div>
           </div>
@@ -309,12 +439,18 @@
             <div id="module{{ value.module.id }}" class="module{{ value.module.id }} module-box {% if key is 0 %}show{% endif %}">
               <div class="module-name-box">
                 <div class="module{{ value.module.id }} module-name">
+                  <input type="hidden" name="module{{ value.module.id }}-id" value="{{ value.module.id }}">
                   <input id="module{{ value.module.id }}-name-form" type="text" class="module{{ value.module.id }} module-name-form" name="module{{ value.module.id }}-name" value="{{ value.module.name }}">
                 </div>
                 <div class="module-name-edit">
                   <label for="module{{ value.module.id }}-name-form">
                     <span><i class="fa-solid fa-pen"></i></span>
                   </label>
+                </div>
+                <div class="module-delete module{{ value.module.id }}">
+                  <div>
+                    <span><i class="fa-solid fa-trash"></i></span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -334,18 +470,19 @@
       {% include '../components/dropdownmenu.html' %}
 
       {% if modules == None %}
-        <li class="nav-item module_new0 new" role="presentation">
+        <li class="nav-item modulenew0 new" role="presentation">
           <button
             class="nav-link new active"
-            id="file_new0-tab"
+            id="filenew0-tab"
             data-bs-toggle="tab"
-            data-bs-target="#file_new0"
+            data-bs-target="#filenew0"
             type="button"
             role="tab"
-            aria-controls="file_new0"
+            aria-controls="filenew0"
             aria-selected="true"
           >
-          <input class="file-name-form" type="text" name="module_new0file_new0-name" value="" placeholder="ファイル名">
+          <input type="hidden" name="modulenew0_filenew0-id" value="">
+          <input class="file-name-form" type="text" name="modulenew0_filenew0-name" value="" placeholder="ファイル名">
           <span>×</span>
           </button>
         </li>
@@ -363,7 +500,8 @@
                 aria-controls="file{{ file.id }}"
                 aria-selected="true"
               >
-              <input class="file-name-form" type="text" name="module{{ module.module.id }}file{{ file.id }}-name" value="{{ file.file_tag_name }}">
+              <input type="hidden" name="module{{ module.module.id }}_file{{ file.id }}-id" value="{{ file.id }}">
+              <input class="file-name-form" type="text" name="module{{ module.module.id }}_file{{ file.id }}-name" value="{{ file.file_tag_name }}">
               <span>×</span>
               </button>
             </li>
@@ -380,16 +518,16 @@
     <div class="tab-content files">
       {% if modules == None %}
         <div
-        class="module_new0 file_new0 tab-pane fade code active show"
-        id="file_new0"
+        class="modulenew0 filenew0 tab-pane fade code active show"
+        id="filenew0"
         role="tabpanel"
-        aria-labelledby="file_new0-tab"
+        aria-labelledby="filenew0-tab"
         >
           <div class="editor-container">
             <div class="editor-lines"></div>
             <div class="editor-main editor-code">
-              <textarea class="editor editor-code editor-codefile_new0" cols="30" rows="30" name="module_new0file_new0-code"></textarea>
-              <pre><code class="python code-output code-outputfile_new0 language-python"></code></pre>
+              <textarea class="editor editor-code editor-codefilenew0" cols="30" rows="30" name="modulenew0_filenew0-code"></textarea>
+              <pre><code class="python code-output code-outputfilenew0 language-python"></code></pre>
             </div>
             <div class="line-highlight"></div>
           </div>

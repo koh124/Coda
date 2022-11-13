@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.shortcuts import redirect
 import json
 from django.http import HttpResponse, JsonResponse
 from ..models.models import *
@@ -9,16 +10,23 @@ from .articleeditpagepostparam import ArticleEditPagePostParam
 from datetime import datetime
 import os
 # from ..models.seeder_data import * # seeder
+import time
 
 """SQL
 select coda_module.id as module_id, coda_article.id as article_id, coda_file.id as file_id  from coda_module inner join coda_article_module_dependencies on coda_module.id = coda_article_module_dependencies.module_id inner join coda_article on coda_article.id = coda_article_module_dependencies.article_id inner join coda_module_file_dependencies on coda_module_file_dependencies.module_id = coda_module.id inner join coda_file on coda_file.id = coda_module_file_dependencies.file_id;
 """
 
 def read(request):
+  # editページに飛ばす
   if len(request.GET):
-    print(request.GET)
+    print(request.GET, 'いいいいい')
     a_id = request.GET['a_id']
     return render(request, 'article/create_base.html', getArticlePageByArticleId(a_id))
+  elif request.path == '/edit/':
+    # パラメータなしURLがeditのアクセスはcreateに飛ばす
+    return redirect('/create')
+  elif request.path == '/':
+    return redirect('/create')
 
   post = request.POST
   print(post, '生のpost')
@@ -55,8 +63,23 @@ def read(request):
   if len(post):
     param_tree = ArticleEditPagePostParam(post).data
     SaveParamTree(param_tree)
+    print(param_tree, 'こああああああ')
+    if 'id' in param_tree['article']:
+      article_id = param_tree['article']['id']
+      print('これ？')
+    else:
+      article_id = Article.objects.all().last().id
+      print('それともこれ？')
+
+    return redirect(f'http://localhost:8000/edit/?a_id={article_id}')
 
   return render(request, 'article/create_base.html')
+
+def delete(request):
+  print('削除')
+  article_id = request.POST['article-id']
+  Article.objects.get(id=article_id).delete()
+  return redirect('/create')
 
 # ParamTreeを解析してDBに保存する
 def SaveParamTree(param_tree):
@@ -70,48 +93,88 @@ def SaveParamTree(param_tree):
   a_id = article['id']
 
   # article_idがpostで送られてきたら、updateとみなす
-  if a_id != None:
-    Article.objects.get(a_id)
-
-  Article(
-    title = title,
-    body = body,
-    is_public = True,
-    user = User.objects.get(id=1),
-    created_at = created_at,
-    updated_at = updated_at,
-  ).save()
-
-  # articleを削除すると、param_treeはmoduleだけになる
-  param_tree.pop('article')
-
-  print(param_tree) # moduleだけになっている
-
-  zip_key = []
-  zip_files = []
-
-  for key in param_tree:
-    # moduleの取得とこの2モデルをDBへ保存
-    module = param_tree[key]
-    name = module['name']
-    Module(
-      name = name,
+  if a_id != '':
+    article = Article.objects.get(id=a_id)
+    article.title = title
+    article.body = body
+    article.is_public = True
+    article.user = User.objects.get(id=1)
+    article.created_at = created_at
+    article.updated_at = updated_at
+    article.save()
+  else:
+    Article(
+      title = title,
+      body = body,
       is_public = True,
-      is_importable = True,
-      is_executable = True,
       user = User.objects.get(id=1),
       created_at = created_at,
       updated_at = updated_at,
     ).save()
-    Article_Module_Dependencies(
-      article = Article.objects.all().last(),
-      module = Module.objects.all().last(),
-      created_at = created_at,
-      updated_at = updated_at,
-    ).save()
+    a_id = Article.objects.all().last().id
+    article['id'] = a_id # popしてからarticleを入れ直してるけど、ここが空文字列だとエラー...
 
-    # moduleからnameを削除するとfilesだけになる
+  # articleを削除すると、param_treeはmoduleだけになる
+  queue = param_tree.pop('article')
+
+  print(param_tree, 'Paramつりー') # moduleだけになっている
+
+  zip_key = []
+  zip_files = []
+
+  # モジュールやファイルの削除の実装方法の案
+  # 最初にpostで送られた新規モジュールと既存モジュールのidを保持しておく
+  # 一連の保存処理が完了したあと、同じarticleの他のモジュールをすべて削除
+  # ファイルはモジュールさえ削除すればかんたんに紐付けられるので容易い
+
+  moduleid_list = []
+
+  for key in param_tree:
+
+    module = param_tree[key]
+    name = module['name']
+
+    print(key, 'いまみるのはこれ')
+    if 'new' in key:
+      module_id = None
+    else:
+      module_id = module['id']
+
+    print(module)
+    # moduleの取得とこの2モデルをDBへ保存
+
+    if module_id != None:
+      module_instance = Module.objects.get(id=module_id)
+      module_instance.name = name
+      module_instance.is_public = True
+      module_instance.is_importable = True
+      module_instance.is_executable = True
+      module_instance.user = User.objects.get(id=1)
+      module_instance.created_at = created_at
+      module_instance.updated_at = updated_at
+      module_instance.save()
+      moduleid_list.append(module_id)
+    else:
+      Module(
+        name = name,
+        is_public = True,
+        is_importable = True,
+        is_executable = True,
+        user = User.objects.get(id=1),
+        created_at = created_at,
+        updated_at = updated_at,
+      ).save()
+      Article_Module_Dependencies(
+        article = Article.objects.get(id=a_id),
+        module = Module.objects.all().last(),
+        created_at = created_at,
+        updated_at = updated_at,
+      ).save()
+      moduleid_list.append(Module.objects.last().id)
+
+    # moduleからnameとidを削除するとfilesだけになる
     module.pop('name')
+    module.pop('id')
 
     # これを作る
     # collection = {
@@ -127,31 +190,72 @@ def SaveParamTree(param_tree):
     collection = dict(zip(zip_key, zip_files))
 
     files = collection[key]
+    fileid_list = []
     for file_id, file_values in files.items():
+      print(file_id)
+      if 'new' in file_id:
+        f_id = None
+      else:
+        f_id = file_values['id']
       file_tag_name = file_values['name']
       code = file_values['code']
       language = file_values['language']
-      File(
-        file_tag_name = file_tag_name,
-        code = code,
-        file_name = '考え中',
-        file_path = 'path/to/file',
-        is_public = True,
-        is_importable = True,
-        is_executable = True,
-        created_at = created_at,
-        updated_at = updated_at,
-        article = Article.objects.all().last(),
-        language = Language.objects.filter(name=language).first(),
-        user = User.objects.get(id=1),
-      ).save()
-      Module_File_Dependencies(
-        module = Module.objects.all().last(),
-        file = File.objects.all().last(),
-        created_at = created_at,
-        updated_at = updated_at,
-      ).save()
 
+      if f_id != None:
+        file = File.objects.get(id=f_id)
+        file.file_tag_name = file_tag_name
+        file.code = code
+        file.file_name = '考え中'
+        file.file_path = 'path/to/file'
+        file.is_public = True
+        file.is_importable = True
+        file.is_executable = True
+        file.updated_at = updated_at
+        file.language = Language.objects.get(name=language)
+        file.save()
+        fileid_list.append(f_id)
+      else:
+        File(
+          file_tag_name = file_tag_name,
+          code = code,
+          file_name = '考え中',
+          file_path = 'path/to/file',
+          is_public = True,
+          is_importable = True,
+          is_executable = True,
+          created_at = created_at,
+          updated_at = updated_at,
+          article = Article.objects.get(id=a_id),
+          language = Language.objects.filter(name=language).first(),
+          user = User.objects.get(id=1),
+        ).save()
+        Module_File_Dependencies(
+          module = Module.objects.all().last(),
+          file = File.objects.all().last(),
+          created_at = created_at,
+          updated_at = updated_at,
+        ).save()
+        fileid_list.append(File.objects.last().id)
+
+  # postで送られてこなかったモジュールの削除処理
+  article_dependency_modules = Article_Module_Dependencies.objects.filter(article=Article.objects.get(id=a_id))
+  res = article_dependency_modules
+  # postで送られてきたモジュールを弾く
+  for i in moduleid_list:
+    res = res.exclude(module=Module.objects.get(id=i))
+
+  # # 削除実行
+  for i in res:
+    i.module.delete()
+
+  # ファイルも同様に削除を行う
+  print(fileid_list)
+
+
+
+  print(moduleid_list)
+
+  param_tree['article'] = queue
   return
 
 
@@ -197,19 +301,3 @@ def getArticlePageByArticleId(article_id):
   print(result)
 
   return result
-
-
-  # post = request.POST
-  # for i in post:
-  #   print(i)
-  # print(post)
-
-  # # print(post)
-  # print('ここからcreateParamTree')
-  # print(ArticleEditPagePostParam(post).data)
-
-  # return
-
-
-
-  # return render(request, 'article/create_base.html', getArticlePageByArticleId())
