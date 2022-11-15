@@ -31,6 +31,7 @@
 <script src="{% static 'js/article_module.js' %}"></script>
 <script src="{% static 'js/article_file.js' %}"></script>
 <script>
+
   // 各file_idに基づいたエディタとcodeのhighlightをアクティベート
   const tab_contents = $('.tab-pane.code');
   for (let i = 0; i < tab_contents.length; i++) {
@@ -96,16 +97,49 @@
     // 新しいファイルタブをクリックしたとき、ドロップダウンの言語を一致させる
     const new_nav_item_entity = $(file_add_button).parent('.file-add').prev();
     new_nav_item_entity.on('click', function() {
-      file.setDropDownMenuLanguage();
-      console.log(file, 'それともこれ？')
       // ついでに他のファイルタブのactiveを取り除く処理もさせておく
       $('.nav-item').not($(this)).not('#input-nav-item').not('#output-nav-item').each(function(index, element) {
-        // console.log($(element))
         $(element).removeClass('active');
-        // console.log($(element).attr('class'))
-      })
+      });
+      file.setDropDownMenuLanguage();
     });
 
+    $(new_nav_item_entity).children('button.nav-link').children('span').on('click', function(e) {
+      e.stopPropagation();
+
+      const this_file_id = file.id;
+      const module_id = active_module_id;
+
+      console.log(this_file_id, module_id);
+
+      const left = $(`.nav-item.${module_id}`).not($(new_nav_item_entity)).not('#input-nav-item').not('#output-nav-item').first();
+      const left_file_id = left.children('button.nav-link').attr('aria-controls');
+
+      setTimeout(() => {
+      $(`.tab-pane.code.${left_file_id}`).addClass('active show');
+      }, 200);
+
+      $('.nav-item').children('button.nav-link.active').removeClass('active');
+      $('.tab-pane.code.active').each(function(i, elem) {
+        $(elem).removeClass('active');
+      });
+      $('.tab-pane.code.show').each(function(i, elem) {
+        $(elem).removeClass('show');
+      });
+
+      left.children('button.nav-link').addClass('active');
+
+      $(`.tab-pane.code.${this_file_id}`).remove();
+      $(new_nav_item_entity).remove();
+
+      {
+        const file = new File({'module_id' : module_id, 'id' : left_file_id})
+        file.setDropDownMenuLanguage();
+      }
+
+      console.log(file, 'ラスト')
+
+    });
     // hljsを適用する処理
     const highlight = new HighLight(file.id);
     highlight.addInputEventHighLight();
@@ -176,16 +210,44 @@
       // 新規追加したモジュールの新規ファイルに、
       // クリックしたら他のファイルのactiveをremoveする仕様をつける
       const new_nav_item_entity = $('.file-add').prev();
-      console.log(new_nav_item_entity)
       new_nav_item_entity.on('click', function() {
         $('.nav-item').not($(this)).not('#input-nav-item').not('#output-nav-item').each(function(index, element) {
-          // console.log($(element))
           $(element).removeClass('active');
-          // console.log($(element).attr('class'))
         });
-        file.setDropDownMenuLanguage();
-        console.log('追加したよ')
+        if (file.exists()) {
+          file.setDropDownMenuLanguage();
+        }
+      });
+      $(new_nav_item_entity).children('button.nav-link').children('span').on('click', function(e) {
+        e.stopPropagation();
 
+        const this_file_id = file.id;
+        const module_id = module.id;
+
+        const left = $(`.nav-item.${module_id}`).not($(new_nav_item_entity)).not('#input-nav-item').not('#output-nav-item').first();
+        const left_file_id = left.children('button.nav-link').attr('aria-controls');
+
+        setTimeout(() => {
+        $(`.tab-pane.code.${left_file_id}`).addClass('active show');
+        }, 200);
+
+        $('.nav-item').children('button.nav-link.active').removeClass('active');
+        $('.tab-pane.code.active').each(function(i, elem) {
+          $(elem).removeClass('active');
+        });
+        $('.tab-pane.code.show').each(function(i, elem) {
+          $(elem).removeClass('show');
+        });
+
+        left.children('button.nav-link').addClass('active');
+
+        $(`.tab-pane.code.${this_file_id}`).remove();
+        $(new_nav_item_entity).remove();
+
+        {
+          const file = new File({'module_id' : module_id, 'id' : left_file_id});
+          file.setDropDownMenuLanguage();
+        }
       });
     });
   }
@@ -294,98 +356,79 @@
     module.addClickEventDeleteModule();
   }
 
-  // 新規投稿か編集かを分けるフラグをつくる
-  let url = new URL(window.location.href);
-  let params = url.searchParams;
-  if (params.get('a_id') !== null) {
-    window.a_id = params.get('a_id');
-  }
-  console.log(window);
-
   // ファイルタブをクリックしたとき、他のファイルタブのactiveを無効にする仕様を追加
+  // この処理はfileaddボタンから新規追加したファイルと、
+  // moduleaddボタンから新規追加したファイルでも必要になる
   const file_nav_items = $('.nav-item').not('#input-nav-item').not('#output-nav-item').each(function(index, navitem) {
-    navitem.addEventListener('click', function() {
+    navitem.addEventListener('click', function(events) {
+
+      // spanタグをクリックしたら、ファイルの削除を実行する
+      const clicked_elem = events.target;
+      const file_delete_btn = $(this).children('button.nav-link').children('span').get()[0];
+
+      if (clicked_elem.isEqualNode(file_delete_btn)) {
+        // 不要
+        return false;
+      }
+
       $('.nav-item').not($(this)).not('#input-nav-item').not('#output-nav-item').each(function(index, element) {
         $(element).find('button').removeClass('active');
       });
 
-      const classlist = navitem.classList;
-      let moduleid;
-      for (let i = 0; i < classlist.length; i++) {
-        if (classlist[i].indexOf('module') !== -1) {
-          moduleid = classlist[i];
-          console.log(moduleid);
-          break;
-        }
-      }
-      const fileid = $(navitem).find('button').attr('aria-controls');
-      console.log(fileid);
-      const file = new File({'module_id' : moduleid, 'id' : fileid});
+      const module_id = $('.module-box.show').attr('id');
+      const file_id = $(navitem).find('button').attr('aria-controls');
+      const file = new File({'module_id' : module_id, 'id' : file_id});
+
+      // ドロップダウンの言語をファイルに合わせるために、
+      // fileインスタンスを生成してメソッドを呼び出す必要があり、
+      // そのためだけにモジュールidとfileidを求めてた
       file.setDropDownMenuLanguage();
-
-
-      // // ファイルタブをクリックしたとき、ドロップダウンの言語も変更する
-      // const file_id = $(navitem).find('button').attr('aria-controls');
-      // const this_class_list = $(`.tab-pane#${file_id} .editor-container pre code`).get()[0].classList;
-
-      // for (let i = 0; i < this_class_list.length; i++) {
-      //   if (LANGUAGES.includes(this_class_list[i]) || LANGUAGES.includes(this_class_list[i].replace('language-', ''))) {
-      //     console.log(this_class_list[i], 'これ？')
-      //     $('#language-dropdownmenu-button').val(this_class_list[i].replace('language-', ''));
-      //   }
-      // }
     });
   });
 
-  // // モジュールの削除処理
-  // $('.module-delete').each(function(index, element) {
-  //   // モジュールクリックしたら
-  //   $(element).on('click', function() {
-  //     // まずどのモジュールidを持ったモジュールか特定する
-  //     const classlist = element.classList;
-  //     let selector = '';
-  //     for (let i = 0; i < classlist.length; i++) selector += `.${classlist[i]}`;
-  //     console.log(selector);
-  //     const module = $(selector).parent('.module-name-box').parent('.module-box');
-  //     const module_id = module.attr('id');
+  $('.nav-item').not('#input-nav-item').not('#output-nav-item').each(function(index, navitem) {
+    $(navitem).children('button.nav-link').children('span').on('click', function(e) {
+      // ファイル削除ボタン(span)をクリックしたときのイベントなので、
+      // 親要素のnav-itemへのイベント伝播は阻止する
+      e.stopPropagation();
 
-  //     // モジュールidに紐づくファイルを取得する
-  //     const file_nav_items = $(`li.nav-item.${module_id}`);
-  //     const file_tab_contents = $(`.tab-pane.code.${module_id}`);
+      const this_file_id = $(navitem).children('button.nav-link').attr('aria-controls');
+      const module_id = $('.module-box.show').attr('id');
 
-  //     // そのモジュールがshow状態であったかどうかのフラグを取得しておく
-  //     const has_show = module.hasClass('show');
+      const left = $(`.nav-item.${module_id}`).not($(navitem)).not('#input-nav-item').not('#output-nav-item').first();
+      const left_file_id = left.children('button.nav-link').attr('aria-controls');
 
-  //     // モジュールとファイルの削除処理を行う
-  //     file_nav_items.each(function() {
-  //       $(this).remove();
-  //     });
-  //     file_tab_contents.each(function() {
-  //       $(this).remove();
-  //     });
-  //     module.remove();
+      // ※苦肉の策
+      // ファイルの削除ボタンを押したらfile tabとfile contentをremoveして他のファイルをactiveにしたいのだが、
+      // このときに他のfile contentにactiveクラスをつけると必ず一連のクリックイベント処理終了後にactiveが取り除かれてしまう
+      // event.stopPropagationをしてもreturn falseをしても止めることはできなかった
+      // おそらくbootstrapのtabをクリックしたときの仕様だと思われる
+      // setTimeoutの遅延秒数も100ミリ秒程度ではだめだった
+      setTimeout(() => {
+      $(`.tab-pane.code.${left_file_id}`).addClass('active show');
+      }, 200);
 
-  //     // 先程削除したモジュールがshowだった場合、
-  //     // 先頭のモジュールにshowを渡す
-  //     if (has_show) {
-  //       const first_module_box = $('.module-box').not(`#${module_id}`).first();
-  //       const first_module_id = first_module_box.attr('id');
-  //       const first_module = new Module({ 'id': first_module_id });
+      // 一旦すべてのタブを非activeにする
+      $('.nav-item').children('button.nav-link.active').removeClass('active');
+      $('.tab-pane.code.active').each(function(i, elem) {
+        $(elem).removeClass('active');
+      });
+      $('.tab-pane.code.show').each(function(i, elem) {
+        $(elem).removeClass('show');
+      });
 
-  //       first_module.showModule();
-  //       first_module.activateNavItems();
-  //       first_module.disableNavItems();
-  //       first_module.activateTabContent();
-  //       first_module.disableTabContent();
-  //       const activeTabContent = $(`.tab-pane.code.active.show`);
+      // 同じモジュールの一番左のファイルをactiveにしたい
+      left.children('button.nav-link').addClass('active');
 
-  //       const highlight = new HighLight(activeTabContent.attr('id'));
-  //       highlight.addInputEventHighLight();
-  //       highlight.addFocusEventHighLight();
-  //     }
+      // ファイルの削除実行
+      $(`.tab-pane.code.${this_file_id}`).remove();
+      $(navitem).remove();
 
-  //   });
-  // });
+      const file = new File({'module_id' : module_id, 'id' : left_file_id});
+      file.setDropDownMenuLanguage();
+
+    });
+  });
 
 </script>
 <script>

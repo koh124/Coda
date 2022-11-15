@@ -58,26 +58,29 @@ Module.prototype.addClickEventActivateModule = function() {
 
     // モジュールをアクティベートするクリックイベントを付与
     module.addEventListener('click', function() {
-      self.showModule();
-      self.activateNavItems();
-      self.disableNavItems();
-      self.activateTabContent();
-      self.disableTabContent();
-      const activeTabContent = $(`.tab-pane.code.active.show`);
-
-      const first_file_id = $(`.tab-pane.code.${self.id}`).first().attr('id');
-      console.log(first_file_id, 'ファイルID')
-      const first_file = new File({'module_id' : self.id, 'id' : first_file_id})
-      first_file.setDropDownMenuLanguage();
-
-      const highlight = new HighLight(activeTabContent.attr('id'));
-      highlight.addInputEventHighLight();
-      highlight.addFocusEventHighLight();
+      self.activateModule();
     });
 
   } else {
     throw new Error('モジュールが存在しません');
   }
+}
+Module.prototype.activateModule = function() {
+  this.showModule();
+  this.activateNavItems();
+  this.disableNavItems();
+  this.activateTabContent();
+  this.disableTabContent();
+  const activeTabContent = $(`.tab-pane.code.active.show`);
+
+  const first_file_id = $(`.tab-pane.code.${this.id}`).first().attr('id');
+  console.log(first_file_id, 'ファイルID')
+  const first_file = new File({'module_id' : this.id, 'id' : first_file_id})
+  first_file.setDropDownMenuLanguage();
+
+  const highlight = new HighLight(activeTabContent.attr('id'));
+  highlight.addInputEventHighLight();
+  highlight.addFocusEventHighLight();
 }
 Module.prototype.showModule = function() {
   $(`.module-box.${this.id}`).addClass('show');
@@ -93,16 +96,17 @@ Module.prototype.activateNavItems = function() {
     $(active_nav_items[i]).find('button.nav-link.active').removeClass('active');
   }
   $(active_nav_items[0]).find('button.nav-link').addClass('active');
+  // $(active_nav_items[0]).find('button.nav-link').tab('show');
 
   // ドロップダウンメニューをアクティブなファイルの言語に合わせる処理
-  const file_id = $(active_nav_items[0]).find('button').attr('aria-controls');
-  const this_class_list = $(`.tab-pane#${file_id} .editor-container pre code`).get()[0].classList;
+  // const file_id = $(active_nav_items[0]).find('button').attr('aria-controls');
+  // const this_class_list = $(`.tab-pane#${file_id} .editor-container pre code`).get()[0].classList;
 
-  for (let i = 0; i < this_class_list.length; i++) {
-    if (LANGUAGES.includes(this_class_list[i]) || LANGUAGES.includes(this_class_list[i].replace('language-', ''))) {
-      $('#language-dropdownmenu-button').val(this_class_list[i].replace('language-', ''));
-    }
-  }
+  // for (let i = 0; i < this_class_list.length; i++) {
+  //   if (LANGUAGES.includes(this_class_list[i]) || LANGUAGES.includes(this_class_list[i].replace('language-', ''))) {
+  //     $('#language-dropdownmenu-button').val(this_class_list[i].replace('language-', ''));
+  //   }
+  // }
 
 }
 Module.prototype.disableNavItems = function() {
@@ -134,7 +138,12 @@ Module.prototype.disableTabContent = function() {
 Module.prototype.addClickEventDeleteModule = function() {
   const this_module = $(`.module-box.${this.id}`).find('.module-delete').get()[0];
 
-  $(this_module).on('click', function() {
+  $(this_module).on('click', function(e) {
+    e.stopPropagation();
+
+    // そのモジュールがshow状態であったかどうかのフラグを取得しておく
+    const is_show = $(this).parent('.module-name-box').parent('.module-box').hasClass('show');
+
     // まずどのモジュールidを持ったモジュールか特定する
     const classlist = this_module.classList;
     let selector = '';
@@ -147,9 +156,6 @@ Module.prototype.addClickEventDeleteModule = function() {
     const file_nav_items = $(`li.nav-item.${module_id}`);
     const file_tab_contents = $(`.tab-pane.code.${module_id}`);
 
-    // そのモジュールがshow状態であったかどうかのフラグを取得しておく
-    const has_show = module.hasClass('show');
-
     // モジュールとファイルの削除処理を行う
     file_nav_items.each(function() {
       $(this).remove();
@@ -161,23 +167,14 @@ Module.prototype.addClickEventDeleteModule = function() {
 
     // 先程削除したモジュールがshowだった場合、
     // 先頭のモジュールにshowを渡す
-    if (has_show) {
+    if (is_show) {
       const first_module_box = $('.module-box').not(`#${module_id}`).first();
       const first_module_id = first_module_box.attr('id');
       const first_module = new Module({ 'id': first_module_id });
-
-      first_module.showModule();
-      first_module.activateNavItems();
-      first_module.disableNavItems();
-      first_module.activateTabContent();
-      first_module.disableTabContent();
-      const activeTabContent = $(`.tab-pane.code.active.show`);
-
-      const highlight = new HighLight(activeTabContent.attr('id'));
-      highlight.addInputEventHighLight();
-      highlight.addFocusEventHighLight();
+      first_module.activateModule();
     }
 
+    // return false
   });
 }
 

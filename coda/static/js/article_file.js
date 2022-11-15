@@ -108,3 +108,6 @@ File.prototype.setDropDownMenuLanguage = function() {
     }
   }
 }
+File.prototype.exists = function() {
+  return $(`.tab-pane.code.${this.id}`).length;
+}

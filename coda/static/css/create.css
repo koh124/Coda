@@ -257,6 +257,7 @@ ul.nav.nav-tabs {
   position: absolute;
   top: 2px;
   right: 2px;
+  z-index: 999;
 }
 
 .nav-link:hover span {
