@@ -35,6 +35,11 @@ def read(request):
   # パラメータにはexecuteを含ませている
   if 'execute' in post:
     print(post)
+
+    if post['language'] == 'javascript':
+      language = 'js'
+    else:
+      language = post['language']
     File(
       file_tag_name = 'MyPostCode',
       code = post[[i for i in post if i.startswith('module')][0]],
@@ -46,7 +51,7 @@ def read(request):
       created_at = datetime.now(),
       updated_at = datetime.now(),
       article = Article.objects.all().first(),
-      language = Language.objects.filter(name=post['language']).first(),
+      language = Language.objects.filter(name=language).first(),
       user = User(id=1),
     ).save()
     File.objects.last().writeFile()
@@ -119,16 +124,13 @@ def SaveParamTree(param_tree):
 
   print(param_tree, 'Paramつりー') # moduleだけになっている
 
-  zip_key = []
-  zip_files = []
-
   # モジュールやファイルの削除の実装方法の案
   # 最初にpostで送られた新規モジュールと既存モジュールのidを保持しておく
   # 一連の保存処理が完了したあと、同じarticleの他のモジュールをすべて削除
   # ファイルはモジュールさえ削除すればかんたんに紐付けられるので容易い
 
   moduleid_list = []
-
+  fileid_list = []
   for key in param_tree:
 
     module = param_tree[key]
@@ -171,10 +173,16 @@ def SaveParamTree(param_tree):
         updated_at = updated_at,
       ).save()
       moduleid_list.append(Module.objects.last().id)
+      module_id = Module.objects.last().id
 
     # moduleからnameとidを削除するとfilesだけになる
     module.pop('name')
     module.pop('id')
+
+    print(module, 'モジュールです')
+
+    zip_key = []
+    zip_files = []
 
     # これを作る
     # collection = {
@@ -188,9 +196,10 @@ def SaveParamTree(param_tree):
     zip_files.append(tmp)
 
     collection = dict(zip(zip_key, zip_files))
+    print(collection, 'コレクション')
 
     files = collection[key]
-    fileid_list = []
+    # fileid_list = []
     for file_id, file_values in files.items():
       print(file_id)
       if 'new' in file_id:
@@ -229,13 +238,17 @@ def SaveParamTree(param_tree):
           language = Language.objects.filter(name=language).first(),
           user = User.objects.get(id=1),
         ).save()
+        f_id = File.objects.last().id
         Module_File_Dependencies(
-          module = Module.objects.all().last(),
-          file = File.objects.all().last(),
+          module = Module.objects.get(id=module_id),
+          file = File.objects.get(id=f_id),
           created_at = created_at,
           updated_at = updated_at,
         ).save()
-        fileid_list.append(File.objects.last().id)
+        fileid_list.append(f_id)
+
+  # ここでモジュールのforeachループ終了
+  # 以降すべてのモジュールに対して繰り返し処理が終わったあとの処理
 
   # postで送られてこなかったモジュールの削除処理
   article_dependency_modules = Article_Module_Dependencies.objects.filter(article=Article.objects.get(id=a_id))
@@ -249,9 +262,19 @@ def SaveParamTree(param_tree):
     i.module.delete()
 
   # ファイルも同様に削除を行う
-  print(fileid_list)
+  # moduleid_listは残すモジュール
+  for m_id in moduleid_list:
+    module = Module.objects.get(id=m_id)
+    module_dependency_files = Module_File_Dependencies.objects.filter(module=Module.objects.get(id=module.id))
+    res = module_dependency_files
 
+    # postで送られてきたファイルを残すために弾く
+    for i in fileid_list:
+      res = res.exclude(file=File.objects.get(id=i))
+    for i in res:
+      i.file.delete()
 
+    print(res, 'これ')
 
   print(moduleid_list)
 

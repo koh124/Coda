@@ -59,6 +59,8 @@
 
       // fileのlanguageを取得し、file_idとmodule_idからlanguage情報を載せたinputタグをフォームに追加する
       const class_list = $(tab_contents[i]).find('code')[0].classList;
+      console.log(class_list, 'ここ');
+
       for (let j = 0; j < class_list.length; j++) {
         if (LANGUAGES.includes(class_list[j].replace('language-', '')) && !LANGUAGES.includes(class_list[j])) {
           const array = class_list[j].split('-');
@@ -68,6 +70,7 @@
           break;
         }
       }
+      // console.log(class_list)
     }
     // return false;
   };

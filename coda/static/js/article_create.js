@@ -1,4 +1,4 @@
-const LANGUAGES = ['python', 'Python', 'php', 'PHP', 'ruby', 'Ruby', 'javascript', 'css', 'html'];
+const LANGUAGES = ['python', 'Python', 'php', 'PHP', 'ruby', 'Ruby', 'javascript', 'js', 'css', 'html'];
 const CSRF_TOKEN = document.getElementsByName('csrfmiddlewaretoken')[0].value;
 
 const getTextAreaLineCount = function(value) {
