@@ -11,6 +11,14 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+if os.environ.get('APP_ENV') == 'prod':
+    load_dotenv('.env.prod')
+else:
+    load_dotenv('.env.dev')
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-9qw5wlq&en7ibwh#z1o$%q@$uen3t(e-291@b$(4^-^nbm7!3z'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -78,11 +86,11 @@ WSGI_APPLICATION = 'Coda_project.wsgi.application'
 DATABASES = {
     'default': {
         # 'ENGINE': 'django.db.backends.sqlite3',
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'coda',
-        'USER': 'root',
-        'HOST': 'localhost',
-        'PASSWORD': ''
+        'ENGINE': os.environ.get('DB_ENGINE'),
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PASSWORD': os.environ.get('DB_PASSWORD')
     }
 }
 
