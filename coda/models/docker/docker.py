@@ -20,8 +20,10 @@ class Docker(DockerInterface):
     self.name = 'running-script' + '_' + file.getFullFileName() + '_' + str(file.id)
 
   def run(self):
-    cmd =  f"docker run -it --name {self.name} -v ~/devs/coda_project/coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.file.language.name} {self.file.language.name} ./codes/user1/{self.file.getFullFileName()}"
-    cmd =  f"docker run -it --rm --name {self.name} -v ~/devs/coda_project/coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.file.language.name} {self.file.language.name} ./codes/user1/{self.file.getFullFileName()}"
+    cmd =  f"docker run -it --name {self.name} -v ./coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.file.language.name} {self.file.language.name} ./codes/user1/{self.file.getFullFileName()}"
+    cmd =  f"docker run -it --rm --name {self.name} -v ./coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.file.language.name} {self.file.language.name} ./codes/user1/{self.file.getFullFileName()}"
+    cmd =  f"docker run -it --rm --name {self.name} -v ~/devs/Coda_project/coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.file.language.name} {self.file.language.name} ./codes/user1/{self.file.getFullFileName()}"
+    cmd =  f"docker run -it --rm --name {self.name} -v ${{PWD}}/coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.file.language.name} {self.file.language.name} ./codes/user1/{self.file.getFullFileName()}"
 
     if self.file.language.name == 'js':
       cmd =  f"docker run -it sample-image:latest sh"

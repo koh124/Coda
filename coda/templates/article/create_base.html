@@ -78,7 +78,8 @@
   const delete_btn = $('.delete');
   delete_btn.on('click', function() {
     const form = $('.form')[0];
-    form.setAttribute('action', 'http://localhost:8000/delete/')
+    // form.setAttribute('action', 'http://localhost:8000/delete/')
+    form.setAttribute('action', "{{ request.scheme }}://{{ request.get_host }}/delete/")
     $('.update').click();
   });
 
@@ -151,7 +152,8 @@
 
   execute.addEventListener('click', function() {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', 'http://localhost:8000/create/', true);
+    // xhr.open('POST', 'http://localhost:8000/create/', true);
+    xhr.open('POST', "{{ request.scheme }}://{{ request.get_host }}/create/", true);
     xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
 
     csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
@@ -443,7 +445,7 @@
 <header></header>
 
 <main id="main" class="container">
-  <form class="form" action="http://localhost:8000/create/" method="POST">
+  <form class="form" action="{{ request.scheme }}://{{ request.get_host }}/create/" method="POST">
     <div class="article-title-box">
       <input type="hidden" name="article-id" value="{% if article != None %}{{ article.id }}{% else %}{% endif %}">
       <input type="text" class="article-title-form" name="article-title" value="{% if article != None %}{{ article.title }}{% endif %}" placeholder="記事のタイトル">
