@@ -7,3 +7,5 @@ LANGUAGES = {
   'js': 'js',
   'javascript': 'js',
 }
+
+LANGUAGES_LIST = ['python', 'php', 'ruby', 'html', 'css', 'js']
