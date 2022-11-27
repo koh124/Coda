@@ -1,6 +1,6 @@
 databases:
   - name: render_coda
-    region: Oregon (US West)
+    region: oregon
     plan: free
     databaseName: render_coda
     user: render_user
@@ -9,7 +9,7 @@ services:
   - type: web
     name: render_coda
     env: python
-    region: Oregon (US West)
+    region: oregon
     buildCommand: './build.sh'
     startCommand: 'python3 manage.py runserver'
     plan: free
