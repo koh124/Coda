@@ -15,10 +15,10 @@ import os
 from dotenv import load_dotenv
 
 # 開発環境と本番環境で読み込むenvファイルを分岐
-# if os.environ.get('APP_ENV') == 'prod':
-#     load_dotenv('.env.prod')
-# else:
-#     load_dotenv('.env.dev')
+if os.environ.get('APP_ENV') == 'prod':
+    load_dotenv('.env.prod')
+else:
+    load_dotenv('.env.dev')
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

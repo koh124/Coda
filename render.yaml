@@ -23,4 +23,6 @@ services:
         generateValue: true
       - key: WEB_CONCURRENCY
         value: 4
+      - key: APP_ENV
+        value: prod
     autoDeploy: true
