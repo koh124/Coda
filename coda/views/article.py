@@ -34,13 +34,13 @@ def read(request):
   # 実行するボタンでコード実行したときのみ
   # パラメータにはexecuteを含ませている
   if 'execute' in post:
-    print(post)
 
     if post['language'] == 'javascript':
       language = 'js'
     else:
       language = post['language']
-    File(
+
+    file = File(
       file_tag_name = 'MyPostCode',
       code = post[[i for i in post if i.startswith('module')][0]],
       file_name = 'mypostcode',
@@ -53,10 +53,11 @@ def read(request):
       article = Article.objects.all().first(),
       language = Language.objects.filter(name=language).first(),
       user = User(id=1),
-    ).save()
-    File.objects.last().writeFile()
+    )
 
-    output = Docker(File.objects.last()).run()
+    file.writeFile()
+
+    output = Docker(file).run()
     print(output)
 
     json_str = json.dumps({
