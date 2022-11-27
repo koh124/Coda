@@ -77,8 +77,10 @@ def read(request):
       article_id = Article.objects.all().last().id
       print('それともこれ？')
 
-    return redirect(f'http://localhost:8000/edit/?a_id={article_id}')
+    return redirect(f'{request.scheme}://{request.get_host()}/edit/?a_id={article_id}')
+    # return redirect(f'http://localhost:8000/edit/?a_id={article_id}')
 
+  print(request.scheme, request.get_host())
   return render(request, 'article/create_base.html')
 
 def delete(request):
