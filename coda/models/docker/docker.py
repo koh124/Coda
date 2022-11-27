@@ -24,7 +24,7 @@ class Docker(DockerInterface):
     cmd =  f"docker run -it --rm --name {self.name} -v ./coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.file.language.name} {self.file.language.name} ./codes/user1/{self.file.getFullFileName()}"
     cmd =  f"docker run -it --rm --name {self.name} -v ~/devs/Coda_project/coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.file.language.name} {self.file.language.name} ./codes/user1/{self.file.getFullFileName()}"
     cmd =  f"docker run -it --rm --name {self.name} -v ${{PWD}}/coda/models:{self.WORKING_DIR} -w {self.WORKING_DIR} {self.file.language.name} {self.file.language.name} ./codes/user1/{self.file.getFullFileName()}"
-
+    print(self.name)
     if self.file.language.name == 'js':
       cmd =  f"docker run -it sample-image:latest sh"
       cmd =  f"docker run -it sample-image:latest"

@@ -11,7 +11,7 @@ services:
     env: python
     region: oregon
     buildCommand: './build.sh'
-    startCommand: 'python3 manage.py runserver'
+    startCommand: 'gunicorn Coda_project.wsgi:application'
     plan: free
     healthCheckPath: /
     envVars:
