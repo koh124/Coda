@@ -7,7 +7,7 @@ databases:
 
 services:
   - type: web
-    name: coda
+    name: render_coda
     env: python
     region: Oregon (US West)
     buildCommand: './build.sh'
@@ -23,22 +23,4 @@ services:
         generateValue: true
       - key: WEB_CONCURRENCY
         value: 4
-      - key: DB_NAME
-        value: coda
-      - key: DB_HOST
-        value: dpg-ce16cnpa6gdsa62qsgp0-a
-      - key: DB_USER
-        value: root
-      - key: DB_PASSWORD
-        value: gyGGD8JC4tiGU3qPDavDS3062GNSHz89
-      - key: DB_PORT
-        value: 5432
-      - key: DB_ENGINE
-        value: django.db.backends.postgresql_psycopg2
-      - key: SUPERUSER_NAME
-        value: produser
-      - key: SUPERUSER_EMAIL
-        value: prodcoda@example.com
-      - key: SUPERUSER_PASSWORD
-        value: 9codapassword6
     autoDeploy: true
