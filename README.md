@@ -32,6 +32,11 @@ git clone https://github.com/koh124/Coda.git
 bash ./build.sh
 ```
 
+・アプリケーションスタート
+```
+python3 manage.py runserver
+```
+
 # 開発環境
 vscode
 python/Django
