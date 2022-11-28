@@ -1,0 +1,23 @@
+# version: '3.9'
+services:
+  db:
+    image: mysql
+    environment:
+      - MYSQL_HOST=localhost
+      - MYSQL_PASSWORD=
+      - MYSQL_USER=root
+      - MYSQL_DB_NAME=coda
+  web:
+    # 同じディレクトリにあるDockerfileを起点にビルドするという命令
+    build: .
+    ports:
+      - 8000:8000
+    volumes:
+      - ./:/app
+    # environment:
+    # - DB_HOST=localhost
+    # - DB_NAME=coda
+    # - DB_USER=root
+    # - DB_PASSWORD=
+    depends_on:
+      - db
