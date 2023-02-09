@@ -1,0 +1,25 @@
+a {
+  color: black;
+  text-decoration: none;
+}
+a:hover {
+  color: black;
+}
+
+header {
+  height: 54px;
+  background: orange;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px;
+}
+
+header a {
+  font-size: 32px;
+  color: white;
+}
+
+header a:hover {
+  color: white;
+}

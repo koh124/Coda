@@ -9,6 +9,9 @@ import os
 import re
 # from ..models.seeder_data import *
 
+def top(request):
+  return render(request, 'top.html')
+
 def index(request):
 
   insertData(request.POST['module1file1-code'])

@@ -26,6 +26,10 @@ def read(request):
     # パラメータなしURLがeditのアクセスはcreateに飛ばす
     return redirect('/create')
   elif request.path == '/':
+    print(Article.objects.all())
+    res = getAllArticle()
+    print(res, 'hello, coda!')
+    return render(request, 'top.html', { 'articles': getAllArticle() })
     return redirect('/create')
 
   post = request.POST
@@ -327,3 +331,34 @@ def getArticlePageByArticleId(article_id):
   print(result)
 
   return result
+
+def getAllArticle():
+  results = []
+
+  for article in Article.objects.all():
+    article_id = article.id
+    result = {
+      'modules': {},
+      'article': Article.objects.get(id=article_id),
+    }
+    # articleに対してhas manyであるモジュールすべて
+    article_dependency_modules = Article_Module_Dependencies.objects.filter(article=article_id).all()
+    # そのモジュール一つひとつをイテレータに
+    for i, dependency_module in enumerate(article_dependency_modules):
+      module = dependency_module.module
+      # print(module)
+      result['modules'][i] = {
+        'module': module,
+        'files': {}
+      }
+      # モジュールに対してhas manyであるファイルすべて
+      module_dependency_files = Module_File_Dependencies.objects.filter(module=module.id).all()
+      # そのファイル一つ一つをイテレータとして取得する
+      for j, dependency_file in enumerate(module_dependency_files):
+        file = dependency_file.file
+        result['modules'][i]['files'][j] = file
+        # print(file, 'これが依存ファイル')
+    print(result)
+    results.append(result)
+
+  return results

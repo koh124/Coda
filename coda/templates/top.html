@@ -1,0 +1,34 @@
+{% extends "app_base.html" %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/init.css' %}">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+<link rel="stylesheet" href="{% static 'css/top.css' %}">
+<link rel="stylesheet" href="{% static 'css/utils.css' %}">
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/base16/summerfruit-light.min.css">
+{% endblock %}
+
+{% block endbody_script %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+{% endblock %}
+
+{% block content %}
+{% include "components/header.html" %}
+
+<main id="main" class="container">
+  {% for article in articles %}
+    <section class="article_id{{ article.article.id }}">
+      <a href="/edit?a_id={{ article.article.id }}">
+        <h2>{{ article.article.title }}</h2>
+        <p>{{ article.modules.0.module.name }}</p>
+        <div class="code-wrapper">
+          <pre><code>{{ article.modules.0.files.0.code }}</code></pre>
+        </div>
+      </a>
+    </section>
+  {% endfor %}
+</main>
+{% endblock %}
