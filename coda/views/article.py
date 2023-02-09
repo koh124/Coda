@@ -335,7 +335,7 @@ def getArticlePageByArticleId(article_id):
 def getAllArticle():
   results = []
 
-  for article in Article.objects.all():
+  for article in Article.objects.order_by('created_at').reverse().all():
     article_id = article.id
     result = {
       'modules': {},
